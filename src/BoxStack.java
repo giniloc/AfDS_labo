@@ -6,7 +6,6 @@ public class BoxStack {
     private String[] boxes;
 
     public BoxStack(int ID, String name, int x, int y, String[] boxes) {
-        System.out.println("new stack: " + " " + name + " " + x + " " + y);
         this.ID = ID;
         this.name = name;
         this.x = x;

@@ -9,6 +9,9 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
+
+        
+
         try {
             String jsonContent = new String(Files.readAllBytes(Paths.get("src/I3_3_1_5.json")));
             JSONObject jsonData = new JSONObject(jsonContent);
@@ -46,8 +49,7 @@ public class Main {
             int bufferX = bufferObject.getInt("x");
             int bufferY = bufferObject.getInt("y");
             Buffer buffer = new Buffer(bufferID, bufferName, bufferX, bufferY);
-            System.out.println("Buffer: " + buffer );
-
+            System.out.println("Buffer: " + buffer);
 
 
             //vehicles

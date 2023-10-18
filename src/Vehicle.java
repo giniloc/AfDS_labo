@@ -6,7 +6,6 @@ public class Vehicle {
     private int y;
 
     public Vehicle(int id, String n, int capacity, int xc, int yc) {
-        System.out.println("new vehicle: " + id + " " + n + " " + capacity + " " + xc + " " + yc);
         this.ID = id;
         name = n;
         this.capacity = capacity;
