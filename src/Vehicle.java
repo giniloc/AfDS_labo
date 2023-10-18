@@ -1,19 +1,19 @@
-import java.util.ArrayList;
-import java.util.List;
-
 public class Vehicle {
-    private String id;
+    private int ID;
+    private String name;
     private int capacity;
-    private List<Box> loadedBoxes;
-    private String currentLocation;
+    private int x;
+    private int y;
 
-    public Vehicle(String id, int capacity) {
-        this.id = id;
+    public Vehicle(int id, String n, int capacity, int xc, int yc) {
+        System.out.println("new vehicle: " + id + " " + n + " " + capacity + " " + xc + " " + yc);
+        this.ID = id;
+        name = n;
         this.capacity = capacity;
-        this.loadedBoxes = new ArrayList<>();
-        this.currentLocation = "Buffer Point"; // assuming vehicles start at the buffer point
+        x = xc;
+        y = yc;
     }
-
+/*
     public void loadBox(Box box) {
         if (loadedBoxes.size() < capacity) {
             loadedBoxes.add(box);
@@ -39,5 +39,7 @@ public class Vehicle {
         // Unload box
         unloadBox(request.getBox());
     }
+
+ */
 
 }

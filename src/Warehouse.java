@@ -3,10 +3,10 @@ import java.util.List;
 
 public class Warehouse {
     private List<Vehicle> vehicles;
-    private List<boxStack> stacks;
+    private List<BoxStack> stacks;
     private List<TransportRequest> requests;
 
-    public Warehouse(List<Vehicle> vehicles, List<boxStack> stacks) {
+    public Warehouse(List<Vehicle> vehicles, List<BoxStack> stacks) {
         this.vehicles = vehicles;
         this.stacks = stacks;
         this.requests = new ArrayList<>();
