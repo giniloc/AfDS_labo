@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 public class Main {
     public static void main(String[] args) {
@@ -63,7 +64,7 @@ public class Main {
             //requests
 
             JSONArray requestsArray = jsonData.getJSONArray("requests");
-            TransportRequest[] requests = new TransportRequest[requestsArray.length()];
+            Stack<TransportRequest> requests = new Stack<>();
 
             for (int i = 0; i < requestsArray.length(); i++) {
                 JSONObject requestObject = requestsArray.getJSONObject(i);
@@ -83,7 +84,7 @@ public class Main {
                 }
 
                 TransportRequest request = new TransportRequest(requestID, pickupLocations, placeLocations, boxID);
-                requests[i] = request;
+                requests.add(request);
             }
 
             Scheduler scheduler = new Scheduler(loadingDuration, vehicleSpeed, stackCapacity, stacks, buffer, vehicles, requests);

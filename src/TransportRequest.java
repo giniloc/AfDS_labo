@@ -7,9 +7,9 @@ public class TransportRequest {
     private String boxID;
 
     public TransportRequest(int requestID, List<String> pickupLocations, List<String> placeLocations, String boxID) {
-        this.ID = ID;
+        this.ID = requestID;
         this.pickupLocations = pickupLocations;
-        this.deliveryLocations = deliveryLocations;
+        this.deliveryLocations = placeLocations;
         this.boxID = boxID;
         System.out.println("request: " + requestID);
     }
