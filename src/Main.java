@@ -9,19 +9,13 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-
-        
-
         try {
             String jsonContent = new String(Files.readAllBytes(Paths.get("src/I3_3_1_5.json")));
             JSONObject jsonData = new JSONObject(jsonContent);
 
             int loadingDuration = jsonData.getInt("loadingduration");
-            System.out.println("loadingduration: " + loadingDuration);
             int vehicleSpeed = jsonData.getInt("vehiclespeed");
-            System.out.println("vehiclespeed: " + vehicleSpeed);
             int stackCapacity = jsonData.getInt("stackcapacity");
-            System.out.println("stackCapacity: " + stackCapacity);
 
             //stacks
             JSONArray stackArray = jsonData.getJSONArray("stacks");
@@ -69,7 +63,7 @@ public class Main {
             //requests
 
             JSONArray requestsArray = jsonData.getJSONArray("requests");
-            List<TransportRequest> requests = new ArrayList<>();
+            TransportRequest[] requests = new TransportRequest[requestsArray.length()];
 
             for (int i = 0; i < requestsArray.length(); i++) {
                 JSONObject requestObject = requestsArray.getJSONObject(i);
@@ -89,8 +83,10 @@ public class Main {
                 }
 
                 TransportRequest request = new TransportRequest(requestID, pickupLocations, placeLocations, boxID);
-                requests.add(request);
+                requests[i] = request;
             }
+
+            Scheduler scheduler = new Scheduler(loadingDuration, vehicleSpeed, stackCapacity, stacks, buffer, vehicles, requests);
 
 
         } catch (IOException e) {
