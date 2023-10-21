@@ -67,4 +67,8 @@ public class Vehicle {
         }
     }
 
+    public void addBox(Box box) {
+        System.out.println("Adding box with ID: " + box.getBoxID() + " to vehicle: " + this.name);
+        // You can print any other details of the box here.
+    }
 }

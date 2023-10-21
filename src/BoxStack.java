@@ -48,4 +48,7 @@ public class BoxStack {
     }
 
 
+    public void removeBox(Box box) {
+        boxes.remove(box);
+    }
 }

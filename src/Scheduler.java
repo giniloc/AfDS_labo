@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
@@ -25,9 +26,13 @@ public class Scheduler {
             TransportRequest request = requests.pop();
             Vehicle vehicle = findAvailableVehicle(request);
 
+            assert vehicle != null;
             if (vehicle == null) {
+                System.out.println("No available vehicles");
                 continue;
             }
+            vehicle.setStartTime(0);
+
             for (String location : request.getPickupLocations()) {
                 BoxStack stack = null;
                 for (BoxStack boxStack : boxStacks) {
@@ -44,6 +49,30 @@ public class Scheduler {
                     System.out.println("Stack is in use");
                     continue;
                 }
+
+                // Check if the stack contains boxes and if the box that needs to be moved is on top.
+                List<Box> boxesToMove = new ArrayList<>();
+                for (Box box : stack.getBoxes()) {
+                    if (!box.getBoxID().equals(request.getBoxID())) {
+                        boxesToMove.add(box);
+                    } else {
+                        // Found the box to be picked up, so stop rearranging
+                        break;
+                    }
+                }
+
+                if (!boxesToMove.isEmpty()) {
+                    System.out.println("Rearranging boxes on top of the stack...");
+                    for (Box box : boxesToMove) {
+                        vehicle.addBox(box);
+                        stack.removeBox(box);
+                    }
+
+                    vehicle.addBoxStack(stack, boxesToMove);
+                    // Logic to rearrange boxes (move boxesToMove to the top of the stack)
+                    // You need to implement the logic for rearranging the boxes here.
+                }
+
                 if (stack.getBoxes().size() > stackCapacity) {
                     System.out.println("Stack is too big");
                     continue;
@@ -53,6 +82,7 @@ public class Scheduler {
             }
         }
     }
+
 
     private Vehicle findAvailableVehicle(TransportRequest request) {
         for (Vehicle vehicle : vehicles) {
