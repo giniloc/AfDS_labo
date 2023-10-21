@@ -1,44 +1,70 @@
+import java.util.List;
+
 public class Vehicle {
     private int ID;
     private String name;
     private int capacity;
     private int x;
     private int y;
+    private int startTime;
+    private int endTime;
+
+    private boolean isBusy;
 
     public Vehicle(int id, String n, int capacity, int xc, int yc) {
         this.ID = id;
-        name = n;
+        this.name = n;
         this.capacity = capacity;
-        x = xc;
-        y = yc;
+        this.x = xc;
+        this.y = yc;
+        this.startTime=0;
+        this.endTime=0;
+        this.isBusy=false;
     }
-/*
-    public void loadBox(Box box) {
-        if (loadedBoxes.size() < capacity) {
-            loadedBoxes.add(box);
-        } else {
-            System.out.println("Vehicle capacity reached. Can't load more boxes.");
+
+    public int getX() {
+        return x;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    public int getID() {
+        return ID;
+    }
+
+    public boolean isBusy() {
+        return isBusy;
+    }
+
+    public int getEndTime() {
+        return endTime;
+    }
+
+    public void setBusy(boolean busy) {
+        isBusy = busy;
+    }
+
+    public void setStartTime(int startTime) {
+        this.startTime = startTime;
+    }
+
+    public void addBoxStack(BoxStack stack, List<Box> boxes) {
+        System.out.println("Adding boxes from stack: " + stack.getName() + " to vehicle: " + this.name);
+
+        for (Box box : boxes) {
+            System.out.println("Adding box with ID: " + box.getBoxID() + " to vehicle: " + this.name);
+            // You can print any other details of the box here.
         }
     }
-
-    public void unloadBox(Box box) {
-        loadedBoxes.remove(box);
-    }
-
-    public void moveToLocation(String location) {
-        this.currentLocation = location;
-    }
-    public void executeRequest(TransportRequest request) {
-        // Move to pickup location
-        moveToLocation(request.getPickupLocation());
-        // Load box
-        loadBox(request.getBox());
-        // Move to delivery location
-        moveToLocation(request.getDeliveryLocation());
-        // Unload box
-        unloadBox(request.getBox());
-    }
-
- */
 
 }

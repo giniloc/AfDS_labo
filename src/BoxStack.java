@@ -1,17 +1,51 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class BoxStack {
     private int ID;
     private String name;
     private int x;
     private int y;
-    private String[] boxes;
+    private List<Box> boxes;
 
-    public BoxStack(int ID, String name, int x, int y, String[] boxes) {
+    private boolean inUse;
+
+
+    public BoxStack(int ID, String name, int x, int y) {
         this.ID = ID;
         this.name = name;
         this.x = x;
         this.y = y;
-        this.boxes = boxes;
+        this.boxes = new ArrayList<>();
+        this.inUse = false;
+    }
+    public boolean isInUse() {
+        return inUse;
+    }
+    // Add a method to add boxes to the list
+    public void addBox(String boxID) {
+        boxes.add(new Box(boxID));
     }
 
-    // methods to add box, remove box, check if full, etc.
+    public void setInUse(boolean inUse) {
+        this.inUse = inUse;
+    }
+    public int getID() {
+        return ID;
+    }
+    public String getName() {
+        return name;
+    }
+    public int getX() {
+        return x;
+    }
+    public int getY() {
+        return y;
+    }
+
+    public List<Box> getBoxes() {
+        return boxes;
+    }
+
+
 }

@@ -28,13 +28,15 @@ public class Main {
                 String name = stackObject.getString("name");
                 int x = stackObject.getInt("x");
                 int y = stackObject.getInt("y");
-                JSONArray boxesArray = stackObject.getJSONArray("boxes");
-                String[] boxes = new String[boxesArray.length()];
+                BoxStack stack = new BoxStack(ID, name, x, y);
 
+                JSONArray boxesArray = stackObject.getJSONArray("boxes");
                 for (int j = 0; j < boxesArray.length(); j++) {
-                    boxes[j] = boxesArray.getString(j);
+                    String boxID = boxesArray.getString(j);
+                    stack.addBox(boxID); // Add the box to the BoxStack
                 }
-                stacks[i] = new BoxStack(ID, name, x, y, boxes);
+
+                stacks[i] = stack;
             }
 
             //buffer
@@ -88,6 +90,7 @@ public class Main {
             }
 
             Scheduler scheduler = new Scheduler(loadingDuration, vehicleSpeed, stackCapacity, stacks, buffer, vehicles, requests);
+            scheduler.scheduleRequests();
 
 
         } catch (IOException e) {
