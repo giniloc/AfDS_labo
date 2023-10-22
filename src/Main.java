@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
     public static void main(String[] args) {
@@ -88,9 +90,22 @@ public class Main {
                 TransportRequest request = new TransportRequest(requestID, pickupLocations, placeLocations, boxID);
                 requests.add(request);
             }
-
             Scheduler scheduler = new Scheduler(loadingDuration, vehicleSpeed, stackCapacity, stacks, buffer, vehicles, requests);
-            scheduler.scheduleRequests();
+            //scheduler.scheduleRequests();
+
+            // Create an ExecutorService with a fixed number of threads (e.g., one thread per vehicle)
+            ExecutorService executorService = Executors.newFixedThreadPool(vehicles.length);
+
+            // Create and start worker threads for each vehicle
+            for (Vehicle vehicle : vehicles) {
+                Runnable worker = new VehicleWorker(vehicle, scheduler);
+                executorService.execute(worker);
+            }
+
+            // Shutdown the executor when all tasks are complete
+            executorService.shutdown();
+
+
 
 
         } catch (IOException e) {

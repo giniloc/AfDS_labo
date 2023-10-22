@@ -5,8 +5,8 @@ import java.util.Stack;
 public class Scheduler {
 
     private int loadingDuration;
-    private int vehicleSpeed;
-    private int stackCapacity;
+    private final int vehicleSpeed;
+    private final int stackCapacity; //dit is de capacity van de stack, niet van vehicle
 
     private BoxStack[] boxStacks;
     private Buffer buffer;
@@ -21,6 +21,7 @@ public class Scheduler {
         this.vehicles = ve;
         this.requests = re;
     }
+    /*
     public void scheduleRequests() {
         while (!requests.isEmpty()) {
             TransportRequest request = requests.pop();
@@ -67,10 +68,9 @@ public class Scheduler {
                         vehicle.addBox(box);
                         stack.removeBox(box);
                     }
+                    vehicle.relocateBoxes(boxesToMove);
 
-                    vehicle.addBoxStack(stack, boxesToMove);
                     // Logic to rearrange boxes (move boxesToMove to the top of the stack)
-                    // You need to implement the logic for rearranging the boxes here.
                 }
 
                 if (stack.getBoxes().size() > stackCapacity) {
@@ -78,12 +78,11 @@ public class Scheduler {
                     continue;
                 }
                 stack.setInUse(true);
-                vehicle.addBoxStack(stack, stack.getBoxes());
             }
         }
     }
 
-
+     */
     private Vehicle findAvailableVehicle(TransportRequest request) {
         for (Vehicle vehicle : vehicles) {
             if (!vehicle.isBusy()) {
@@ -108,7 +107,10 @@ public class Scheduler {
             x = x2;
             y = y2;
         }
-
         return travelTime;
+    }
+
+    public TransportRequest getNextRequestForVehicle(Vehicle vehicle) {
+        return requests.pop();
     }
 }

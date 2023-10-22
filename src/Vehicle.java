@@ -71,4 +71,11 @@ public class Vehicle {
         System.out.println("Adding box with ID: " + box.getBoxID() + " to vehicle: " + this.name);
         // You can print any other details of the box here.
     }
+
+    public void relocateBoxes(List<Box> boxesToMove) {
+        for (Box box : boxesToMove){
+            System.out.println("Relocating box with ID: " +box.getBoxID()+ " to a free stack!");
+        }
+
+    }
 }
