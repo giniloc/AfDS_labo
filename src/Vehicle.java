@@ -3,7 +3,7 @@ import java.util.List;
 public class Vehicle {
     private int ID;
     private String name;
-    private int capacity;
+    private final int capacity;
     private int x;
     private int y;
     private int startTime;
@@ -58,24 +58,11 @@ public class Vehicle {
         this.startTime = startTime;
     }
 
-    public void addBoxStack(BoxStack stack, List<Box> boxes) {
-        System.out.println("Adding boxes from stack: " + stack.getName() + " to vehicle: " + this.name);
-
-        for (Box box : boxes) {
-            System.out.println("Adding box with ID: " + box.getBoxID() + " to vehicle: " + this.name);
-            // You can print any other details of the box here.
-        }
+    public void setEndTime(int endTime) {
+        this.endTime = endTime;
     }
 
-    public void addBox(Box box) {
-        System.out.println("Adding box with ID: " + box.getBoxID() + " to vehicle: " + this.name);
-        // You can print any other details of the box here.
-    }
-
-    public void relocateBoxes(List<Box> boxesToMove) {
-        for (Box box : boxesToMove){
-            System.out.println("Relocating box with ID: " +box.getBoxID()+ " to a free stack!");
-        }
-
+    public int getCapacity() {
+        return capacity;
     }
 }

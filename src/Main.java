@@ -22,7 +22,7 @@ public class Main {
 
             //stacks
             JSONArray stackArray = jsonData.getJSONArray("stacks");
-            BoxStack[] stacks = new BoxStack[stackArray.length()];
+            List<BoxStack> stacks = new ArrayList<>();
 
             for (int i = 0; i < stackArray.length(); i++){
                 JSONObject stackObject = stackArray.getJSONObject(i);
@@ -30,15 +30,15 @@ public class Main {
                 String name = stackObject.getString("name");
                 int x = stackObject.getInt("x");
                 int y = stackObject.getInt("y");
-                BoxStack stack = new BoxStack(ID, name, x, y);
+                BoxStack stack = new BoxStack(ID, name, x, y, stackCapacity);
 
                 JSONArray boxesArray = stackObject.getJSONArray("boxes");
-                for (int j = 0; j < boxesArray.length(); j++) {
+                for (int j = boxesArray.length()-1; j >= 0; j--) {
                     String boxID = boxesArray.getString(j);
                     stack.addBox(boxID); // Add the box to the BoxStack
                 }
 
-                stacks[i] = stack;
+                stacks.add(stack);
             }
 
             //buffer
@@ -53,7 +53,7 @@ public class Main {
 
             //vehicles
             JSONArray vehicleArray = jsonData.getJSONArray("vehicles");
-            Vehicle[] vehicles = new Vehicle[vehicleArray.length()];
+            List<Vehicle> vehicles = new ArrayList<>();
 
             for (int i = 0; i < vehicleArray.length(); i++){
                 JSONObject vehicleObject = vehicleArray.getJSONObject(i);
@@ -62,7 +62,7 @@ public class Main {
                 int capacity = vehicleObject.getInt("capacity");
                 int x = vehicleObject.getInt("xCoordinate");
                 int y = vehicleObject.getInt("yCoordinate");
-                vehicles[i] = new Vehicle(ID, name, capacity, x, y);
+                vehicles.add(new Vehicle(ID, name, capacity, x, y));
             }
 
             //requests
@@ -90,17 +90,19 @@ public class Main {
                 TransportRequest request = new TransportRequest(requestID, pickupLocations, placeLocations, boxID);
                 requests.add(request);
             }
-            Scheduler scheduler = new Scheduler(loadingDuration, vehicleSpeed, stackCapacity, stacks, buffer, vehicles, requests);
             //scheduler.scheduleRequests();
 
             // Create an ExecutorService with a fixed number of threads (e.g., one thread per vehicle)
-            ExecutorService executorService = Executors.newFixedThreadPool(vehicles.length);
+            ExecutorService executorService = Executors.newFixedThreadPool(vehicles.size());
+            Scheduler scheduler = new Scheduler(loadingDuration, vehicleSpeed, stackCapacity, stacks, buffer, vehicles, requests, executorService);
+
 
             // Create and start worker threads for each vehicle
             for (Vehicle vehicle : vehicles) {
                 Runnable worker = new VehicleWorker(vehicle, scheduler);
-                executorService.execute(worker);
+                executorService.submit(worker);
             }
+            scheduler.scheduleRequestsWithExecutorService();
 
             // Shutdown the executor when all tasks are complete
             executorService.shutdown();

@@ -25,5 +25,4 @@ public class TransportRequest {
     public List<String>  getDeliveryLocations() {
         return deliveryLocations;
     }
-
 }
