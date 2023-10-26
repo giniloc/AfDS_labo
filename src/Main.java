@@ -6,6 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
     public static void main(String[] args) {
@@ -19,7 +22,7 @@ public class Main {
 
             //stacks
             JSONArray stackArray = jsonData.getJSONArray("stacks");
-            BoxStack[] stacks = new BoxStack[stackArray.length()];
+            List<BoxStack> stacks = new ArrayList<>();
 
             for (int i = 0; i < stackArray.length(); i++){
                 JSONObject stackObject = stackArray.getJSONObject(i);
@@ -27,13 +30,15 @@ public class Main {
                 String name = stackObject.getString("name");
                 int x = stackObject.getInt("x");
                 int y = stackObject.getInt("y");
-                JSONArray boxesArray = stackObject.getJSONArray("boxes");
-                String[] boxes = new String[boxesArray.length()];
+                BoxStack stack = new BoxStack(ID, name, x, y, stackCapacity);
 
-                for (int j = 0; j < boxesArray.length(); j++) {
-                    boxes[j] = boxesArray.getString(j);
+                JSONArray boxesArray = stackObject.getJSONArray("boxes");
+                for (int j = boxesArray.length()-1; j >= 0; j--) {
+                    String boxID = boxesArray.getString(j);
+                    stack.addBox(boxID); // Add the box to the BoxStack
                 }
-                stacks[i] = new BoxStack(ID, name, x, y, boxes);
+
+                stacks.add(stack);
             }
 
             //buffer
@@ -48,7 +53,7 @@ public class Main {
 
             //vehicles
             JSONArray vehicleArray = jsonData.getJSONArray("vehicles");
-            Vehicle[] vehicles = new Vehicle[vehicleArray.length()];
+            List<Vehicle> vehicles = new ArrayList<>();
 
             for (int i = 0; i < vehicleArray.length(); i++){
                 JSONObject vehicleObject = vehicleArray.getJSONObject(i);
@@ -57,13 +62,13 @@ public class Main {
                 int capacity = vehicleObject.getInt("capacity");
                 int x = vehicleObject.getInt("xCoordinate");
                 int y = vehicleObject.getInt("yCoordinate");
-                vehicles[i] = new Vehicle(ID, name, capacity, x, y);
+                vehicles.add(new Vehicle(ID, name, capacity, x, y));
             }
 
             //requests
 
             JSONArray requestsArray = jsonData.getJSONArray("requests");
-            TransportRequest[] requests = new TransportRequest[requestsArray.length()];
+            Stack<TransportRequest> requests = new Stack<>();
 
             for (int i = 0; i < requestsArray.length(); i++) {
                 JSONObject requestObject = requestsArray.getJSONObject(i);
@@ -83,10 +88,26 @@ public class Main {
                 }
 
                 TransportRequest request = new TransportRequest(requestID, pickupLocations, placeLocations, boxID);
-                requests[i] = request;
+                requests.add(request);
             }
+            //scheduler.scheduleRequests();
 
-            Scheduler scheduler = new Scheduler(loadingDuration, vehicleSpeed, stackCapacity, stacks, buffer, vehicles, requests);
+            // Create an ExecutorService with a fixed number of threads (e.g., one thread per vehicle)
+            ExecutorService executorService = Executors.newFixedThreadPool(vehicles.size());
+            Scheduler scheduler = new Scheduler(loadingDuration, vehicleSpeed, stackCapacity, stacks, buffer, vehicles, requests, executorService);
+
+
+            // Create and start worker threads for each vehicle
+            for (Vehicle vehicle : vehicles) {
+                Runnable worker = new VehicleWorker(vehicle, scheduler);
+                executorService.submit(worker);
+            }
+            scheduler.scheduleRequestsWithExecutorService();
+
+            // Shutdown the executor when all tasks are complete
+            executorService.shutdown();
+
+
 
 
         } catch (IOException e) {
