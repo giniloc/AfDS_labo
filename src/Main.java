@@ -94,15 +94,9 @@ public class Main {
 
             // Create an ExecutorService with a fixed number of threads (e.g., one thread per vehicle)
             ExecutorService executorService = Executors.newFixedThreadPool(vehicles.size());
-            Scheduler scheduler = new Scheduler(loadingDuration, vehicleSpeed, stackCapacity, stacks, buffer, vehicles, requests, executorService);
+            Scheduler scheduler = new Scheduler(loadingDuration, vehicleSpeed, stackCapacity, stacks, buffer, vehicles, requests);
 
-
-            // Create and start worker threads for each vehicle
-            for (Vehicle vehicle : vehicles) {
-                Runnable worker = new VehicleWorker(vehicle, scheduler);
-                executorService.submit(worker);
-            }
-            scheduler.scheduleRequestsWithExecutorService();
+            scheduler.scheduleRequests();
 
             // Shutdown the executor when all tasks are complete
             executorService.shutdown();
