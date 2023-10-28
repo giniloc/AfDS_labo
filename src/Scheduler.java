@@ -62,11 +62,14 @@ public class Scheduler {
 
 
     public void processRequest(TransportRequest request, Vehicle vehicle) {
+        int startX = vehicle.getX();
+        int startY = vehicle.getY();
+
         BoxStack van = neededStacks.get(0);
         BoxStack naar = neededStacks.get(1);
 
         int boxPosition = van.calculateBoxPosition(request.getBoxID());
-        if (vehicle.getCapacity() >= boxPosition && stackCapacity >= boxPosition) { //mogelijk om alles in 1 keer te doen
+        if (vehicle.getCapacity() >= boxPosition && stackCapacity >= boxPosition) { // mogelijk om alles in 1 keer te doen
             List<Box> removedBoxes = van.removeBox(van.getBox(boxPosition));
             for (Box box : removedBoxes) {
                 if (box.getBoxID().equals(request.getBoxID())) {
@@ -78,13 +81,30 @@ public class Scheduler {
             for (Box box : removedBoxes) {
                 van.addBox(box);
             }
-        } else {// relocate dozen
+
+            // Update the vehicle's new position
+            vehicle.setX(van.getX());
+            vehicle.setY(van.getY());
+        } else { // relocate dozen
             BoxStack closestFreeStack = getClosestFreeStack(vehicle);
             closestFreeStack.addBox(request.getBoxID());
 
-
+            // Update the vehicle's new position
+            vehicle.setX(closestFreeStack.getX());
+            vehicle.setY(closestFreeStack.getY());
         }
+
+        int endX = vehicle.getX();
+        int endY = vehicle.getY();
+
+
+        // Display the information
+        System.out.println("StartX: " + startX);
+        System.out.println("StartY: " + startY);
+        System.out.println("EndX: " + endX);
+        System.out.println("EndY: " + endY);
     }
+
 
 
 
