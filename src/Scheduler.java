@@ -69,12 +69,14 @@ public class Scheduler {
         BoxStack naar = neededStacks.get(1);
 
         int boxPosition = van.calculateBoxPosition(request.getBoxID());
-        if (vehicle.getCapacity() >= boxPosition && stackCapacity >= boxPosition) { // mogelijk om alles in 1 keer te doen
+        if (vehicle.getCapacity() >= boxPosition && stackCapacity >= boxPosition) {
+            // PICKUP action
             List<Box> removedBoxes = van.removeBox(van.getBox(boxPosition));
             for (Box box : removedBoxes) {
                 if (box.getBoxID().equals(request.getBoxID())) {
                     naar.addBox(box);
                     removedBoxes.remove(box);
+                    logAction(vehicle, "Picked up", box.getBoxID());
                     break;
                 }
             }
@@ -85,9 +87,11 @@ public class Scheduler {
             // Update the vehicle's new position
             vehicle.setX(van.getX());
             vehicle.setY(van.getY());
-        } else { // relocate dozen
+        } else {
+            // PLACE action
             BoxStack closestFreeStack = getClosestFreeStack(vehicle);
             closestFreeStack.addBox(request.getBoxID());
+            logAction(vehicle, "Placed", request.getBoxID());
 
             // Update the vehicle's new position
             vehicle.setX(closestFreeStack.getX());
@@ -97,13 +101,17 @@ public class Scheduler {
         int endX = vehicle.getX();
         int endY = vehicle.getY();
 
-
         // Display the information
         System.out.println("StartX: " + startX);
         System.out.println("StartY: " + startY);
         System.out.println("EndX: " + endX);
         System.out.println("EndY: " + endY);
     }
+
+    private void logAction(Vehicle vehicle, String action, String boxID) {
+        System.out.println("Vehicle " + vehicle.getID() + " " + action + " box " + boxID);
+    }
+
 
 
 
@@ -180,4 +188,8 @@ public class Scheduler {
 
         return (int) Math.ceil(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)));
     }
+    public enum action {
+        PICKUP, PLACE
+    }
 }
+
