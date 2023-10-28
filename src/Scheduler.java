@@ -28,7 +28,6 @@ public class Scheduler {
             if (request == null) {
                 break; // No more requests, exit the loop.
             }
-
             Vehicle vehicle = findAvailableVehicle(request);
 
             if (vehicle == null) {
@@ -66,17 +65,21 @@ public class Scheduler {
         int startY = vehicle.getY();
 
         BoxStack van = neededStacks.get(0);
+        if (van.getName().equals("BufferPoint")) {
+        }
+        else van.setInUse(true);
         BoxStack naar = neededStacks.get(1);
+        if (naar.getName().equals("BufferPoint")){}
+        else naar.setInUse(true);
 
         int boxPosition = van.calculateBoxPosition(request.getBoxID());
         if (vehicle.getCapacity() >= boxPosition && stackCapacity >= boxPosition) {
-            // PICKUP action
             List<Box> removedBoxes = van.removeBox(van.getBox(boxPosition));
             for (Box box : removedBoxes) {
                 if (box.getBoxID().equals(request.getBoxID())) {
                     naar.addBox(box);
                     removedBoxes.remove(box);
-                    logAction(vehicle, "Picked up", box.getBoxID());
+                    //logAction(vehicle, "Picked up", box.getBoxID());
                     break;
                 }
             }
@@ -88,15 +91,17 @@ public class Scheduler {
             vehicle.setX(van.getX());
             vehicle.setY(van.getY());
         } else {
-            // PLACE action
-            BoxStack closestFreeStack = getClosestFreeStack(vehicle);
+            BoxStack closestFreeStack = getClosestFreeStack(vehicle, boxPosition);
+
             closestFreeStack.addBox(request.getBoxID());
-            logAction(vehicle, "Placed", request.getBoxID());
+           // logAction(vehicle, "Placed", request.getBoxID());
 
             // Update the vehicle's new position
             vehicle.setX(closestFreeStack.getX());
             vehicle.setY(closestFreeStack.getY());
         }
+        van.setInUse(false);
+        naar.setInUse(false);
 
         int endX = vehicle.getX();
         int endY = vehicle.getY();
@@ -111,10 +116,6 @@ public class Scheduler {
     private void logAction(Vehicle vehicle, String action, String boxID) {
         System.out.println("Vehicle " + vehicle.getID() + " " + action + " box " + boxID);
     }
-
-
-
-
 
     private BoxStack findStackByName(String location) {
         for (BoxStack stack : boxStacks) {
@@ -160,12 +161,12 @@ public class Scheduler {
         }
         return null;
     }
-    public BoxStack getClosestFreeStack(Vehicle vehicle) {
+    public BoxStack getClosestFreeStack(Vehicle vehicle, int neededCapacity) {
         int minDistance = Integer.MAX_VALUE;
         BoxStack closestStack = null;
 
         for (BoxStack stack : boxStacks) {
-            if (!stack.isInUse()) {
+            if (!stack.isInUse() && stack.getCapacity() >= neededCapacity) {
                 int distance = calculateDistance(vehicle, stack);
                 if (distance < minDistance) {
                     minDistance = distance;
