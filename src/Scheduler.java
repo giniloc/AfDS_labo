@@ -1,9 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantLock;
 public class Scheduler {
     private List<BoxStack> neededStacks = new ArrayList<>();
     private int loadingDuration;
@@ -51,11 +48,9 @@ public class Scheduler {
             }
 
             for (String location : request.getDeliveryLocations()) {
-                BoxStack stack = findStackByName(location);
                 if (location.equals("BufferPoint")) {
                     neededStacks.add(buffer);
                 }
-                neededStacks.add(stack);
             }
 
             processRequest(request, vehicle);
@@ -65,31 +60,31 @@ public class Scheduler {
         }
     }
 
-    private void processRequest(TransportRequest request, Vehicle vehicle) {
+
+    public void processRequest(TransportRequest request, Vehicle vehicle) {
         BoxStack van = neededStacks.get(0);
         BoxStack naar = neededStacks.get(1);
 
         int boxPosition = van.calculateBoxPosition(request.getBoxID());
-        if (vehicle.getCapacity() >= boxPosition && naar.getCapacity() >= boxPosition){ //mogelijk om alles in 1 keer te doen
-            List<Box> removedBoxes= van.removeBox(van.getBox(boxPosition));
-            for(Box box : removedBoxes){
-                if (box.getBoxID().equals(request.getBoxID())){
+        if (vehicle.getCapacity() >= boxPosition && stackCapacity >= boxPosition) { //mogelijk om alles in 1 keer te doen
+            List<Box> removedBoxes = van.removeBox(van.getBox(boxPosition));
+            for (Box box : removedBoxes) {
+                if (box.getBoxID().equals(request.getBoxID())) {
                     naar.addBox(box);
-                }
-                else{
-                    van.addBox(box);
+                    removedBoxes.remove(box);
+                    break;
                 }
             }
-        }
-        else {// relocate dozen
-            BoxStack closestFreeStack = getClosestFreeStack();
+            for (Box box : removedBoxes) {
+                van.addBox(box);
+            }
+        } else {// relocate dozen
+            BoxStack closestFreeStack = getClosestFreeStack(vehicle);
             closestFreeStack.addBox(request.getBoxID());
 
-        }
-
-
 
         }
+    }
 
 
 
@@ -131,27 +126,38 @@ public class Scheduler {
         return travelTime;
     }
 
-    public synchronized TransportRequest getNextRequestForVehicle(Vehicle vehicle) {
+    public TransportRequest getNextRequestForVehicle(Vehicle vehicle) {
         if (!requests.isEmpty()) {
             return requests.pop();
         }
         return null;
     }
-    public BoxStack getClosestFreeStack(){
+    public BoxStack getClosestFreeStack(Vehicle vehicle) {
         int minDistance = Integer.MAX_VALUE;
         BoxStack closestStack = null;
+
         for (BoxStack stack : boxStacks) {
             if (!stack.isInUse()) {
-                int distance = (int) Math.ceil(Math.sqrt(Math.pow(stack.getX() - buffer.getX(), 2) + Math.pow(stack.getY() - buffer.getY(), 2)));
+                int distance = calculateDistance(vehicle, stack);
                 if (distance < minDistance) {
                     minDistance = distance;
                     closestStack = stack;
                 }
             }
         }
+
         if (closestStack != null) {
             closestStack.setInUse(true);
         }
+
         return closestStack;
+    }
+    private int calculateDistance(Vehicle vehicle, BoxStack stack) {
+        int x1 = vehicle.getX();
+        int y1 = vehicle.getY();
+        int x2 = stack.getX();
+        int y2 = stack.getY();
+
+        return (int) Math.ceil(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)));
     }
 }
