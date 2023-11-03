@@ -22,10 +22,6 @@ public class BoxStack {
         this.inUse = false;
         this.capacity = capacity;
     }
-    public boolean isInUse() {
-        return inUse;
-    }
-    // Add a method to add boxes to the list
     public void addBox(Box box) {
         boxes.push(box);
         System.out.println("Added box " + box.getBoxID() + " to stack " + this.name);
@@ -35,9 +31,6 @@ public class BoxStack {
         System.out.println("Added box " + boxID + " to stack " + this.name);
     }
 
-    public void setInUse(boolean inUse) {
-        this.inUse = inUse;
-    }
     public int getID() {
         return ID;
     }
@@ -62,6 +55,13 @@ public class BoxStack {
         removedBoxes.add(box);
         System.out.println("Removed box " + box.getBoxID() + " from stack " + this.name);
         return removedBoxes;
+    }
+    public void setInUse(boolean inUse) {
+        this.inUse = inUse;
+    }
+
+    public boolean isInUse() {
+        return inUse;
     }
 
     public int getIndex() {
