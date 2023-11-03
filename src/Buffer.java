@@ -5,7 +5,7 @@ public class Buffer extends BoxStack {
     private int y;
 
     public Buffer(int ID, String name, int x, int y) {
-        super(ID, name, x, y, Integer.MAX_VALUE);
+        super(ID, name, x, y);
         this.ID = ID;
         this.name = name;
         this.x = x;
