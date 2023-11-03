@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 public class Vehicle {
     private int ID;
@@ -9,6 +6,7 @@ public class Vehicle {
     private final int capacity;
     private int x;
     private int y;
+    private boolean isBusy = false;
 
     private TransportRequest request;
     private Queue<Task> taskQueue = new LinkedList<>();
@@ -26,84 +24,103 @@ public class Vehicle {
 
     public float GiveRequest(TransportRequest req){
         //calculate time for first task in request
-        System.out.println(ID + " started req: " + req.getBoxID());
+        System.out.println("Vehicle " + ID + " started req: " + req.getBoxID());
+        isBusy = true;
         request = req;
-        taskQueue.add(new Task(TaskType.Move, req.getPickupLocation(), req.getDeliveryLocation(), null, 5));
-        return 5;
+        float moveTime  = GetMoveTime(req.getPickupLocation().getX(), req.getPickupLocation().getY());
+        taskQueue.add(new Task(TaskType.Move, req.getPickupLocation(), null, moveTime));
+        return moveTime;
     }
 
-    public float ExecuteNextTask(){
+    public float ExecuteNextTask(int time){
+        //TODO give time with and see if stack free, otherwise wait for time of other vehicles in stack!!!
         //execute current task and calculate time for next one
-        System.out.println(ID + " ended req: " + request.getBoxID());
-        Scheduler.amountNotCompletedReq--;
+        float ret = 1; //temp 0 initialisation //TODO set with task initialisation
 
         if (stacksLocked){
             Task newTask = taskQueue.poll();
-            switch (newTask.getTaskType()){
-                case Move: Move(newTask);
-                case Take: Take(newTask);
-                case Place: Place(newTask);
-                case Relocate: Relocate(newTask);
+            if (newTask == null){
+                isBusy = false;
+                stacksLocked = false;
+                Scheduler.amountNotCompletedReq--;
+                return 0;
             }
+            switch (newTask.getTaskType()){
+                case Move: Move(newTask); break;
+                case Take: Take(newTask); break;
+                case Place: Place(newTask); break;
+            }
+            ret = newTask.getExecutionTime();
         }
         else{
-            //Lock pickup stack
+            Task newTask = taskQueue.poll();
+            Move(newTask);
+            ret = newTask.getExecutionTime();
+
+            //Lock pickup stack & relocate stack(s)
             List<Task> undoTasks = new ArrayList<>();
             if (request.getPickupLocation() != GlobalData.getBuffer()){
                 request.getPickupLocation().AddToQueue(this);
-
-                int index = request.getPickupLocation().GetInverseIndexOf(request.getBoxID());
-                List<String> boxList = new ArrayList<>();
-                if (index+1 <= capacity){
-                    boxList.add(request.getBoxID());
-                    taskQueue.add(new Task(TaskType.Take, request.getDeliveryLocation(), null, boxList, index*2+1));
+                int index = request.getPickupLocation().GetDepth(request.getBoxID());
+                int size = request.getPickupLocation().GetStackSize();
+                if (index <= capacity){
+                    //relocate to self
+                    for (int i = 0; i < index-1; i++){
+                        String nextBox = request.getPickupLocation().GetFromStack(size-(i+1));
+                        taskQueue.add(new Task(TaskType.Take, request.getPickupLocation(), nextBox, GlobalData.getLoadingDuration()));
+                        undoTasks.add(new Task(TaskType.Place, request.getPickupLocation(), nextBox, GlobalData.getLoadingDuration()));
+                    }
                 }
                 else{
+                    //relocate to other
+                    System.out.println("Relocate!");
                     //TODO
-                    //relocate
                 }
-
+                //Required box itself
+                taskQueue.add(new Task(TaskType.Take, request.getPickupLocation(), request.getBoxID(), GlobalData.getLoadingDuration()));
             }
-            else; //TODO
+            else {
+                taskQueue.add(new Task(TaskType.Take, request.getDeliveryLocation(), request.getBoxID(), GlobalData.getLoadingDuration()));
+            }
+
+            taskQueue.addAll(undoTasks);
 
             //Lock Delivery stack
-            List<String> boxList = new ArrayList<>();
-            boxList.add(request.getBoxID());
+            float moveTime = GetMoveTime(request.getDeliveryLocation().getX(), request.getDeliveryLocation().getY());
+            taskQueue.add(new Task(TaskType.Move, request.getDeliveryLocation(), null, moveTime));
             if (request.getDeliveryLocation() != GlobalData.getBuffer()){
                 request.getDeliveryLocation().AddToQueue(this);
-                taskQueue.add(new Task(TaskType.Place, null, request.getDeliveryLocation(), boxList, GlobalData.getLoadingDuration()));
+                taskQueue.add(new Task(TaskType.Place, request.getDeliveryLocation(), request.getBoxID(), GlobalData.getLoadingDuration()));
             }
             else{
-                taskQueue.add(new Task(TaskType.Place, null, request.getDeliveryLocation(), boxList, GlobalData.getLoadingDuration()));
+                taskQueue.add(new Task(TaskType.Place, request.getDeliveryLocation(), request.getBoxID(), GlobalData.getLoadingDuration()));
             }
-
-            //TODO add undos to taskqueue
 
             stacksLocked = true;
         }
 
-        return 0;
+        return ret;
     }
 
     //TODO
     private void Move(Task task){
-
+        x = task.getStack().getX();
+        y = task.getStack().getY();
     }
 
     private void Take(Task task){
-        //dont poll but pop from stack
+        task.getStack().Pop();
+        System.out.println("Vehicle " + ID + " Took " + task.getBox() + " from " + task.getStack().getName());
     }
 
     private void Place(Task task){
-
+        task.getStack().Push(task.getBox());
+        System.out.println("Vehicle " + ID + " Added " + task.getBox() + " to " + task.getStack().getName());
     }
 
-    private void Relocate(Task task){
-
-    }
-
-    private BoxStack FindRelocateStack(){
-        //problem: what if boxed need to be divided over stacks?
+    private List<BoxStack> FindRelocateStacks(int boxAmount){
+        //TODO dealing with boxamount
+        List<BoxStack> relocateStacks = new ArrayList<>();
         int amountBeforeMe = Integer.MAX_VALUE;
         BoxStack stack = null;
         for (String key : GlobalData.getBoxStacks().keySet()){
@@ -116,7 +133,15 @@ public class Vehicle {
                 }
             }
         }
-        return stack;
+        return null; //TODO temp
     }
 
+    private float GetMoveTime(int x_end, int y_end){
+        //return (float)((Math.sqrt((x_end-x)*(x_end-x) + (y_end-y)*(y_end-y)))/GlobalData.getVehicleSpeed());          //Euclidisch
+        return Math.abs((float)((x_end-x)+(y_end-y)))/GlobalData.getVehicleSpeed();                                     //Manhattan
+    }
+
+    public boolean isBusy() {
+        return isBusy;
+    }
 }

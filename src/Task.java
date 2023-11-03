@@ -1,18 +1,13 @@
-import java.util.ArrayList;
-import java.util.List;
-
 public class Task {
     private TaskType taskType;
-    private BoxStack startStack;
-    private BoxStack endStack;
-    private List<String> boxes;
+    private BoxStack stack;
+    private String box;
     private float executionTime;
 
-    public Task(TaskType tt, BoxStack ss, BoxStack es, List<String> bo, float ex){
+    public Task(TaskType tt, BoxStack st, String bo, float ex){
         taskType = tt;
-        startStack = ss;
-        endStack = es;
-        if (bo != null) boxes = new ArrayList<>(bo);
+        stack = st;
+        box = bo;
         executionTime = ex;
     }
 
@@ -20,16 +15,12 @@ public class Task {
         return taskType;
     }
 
-    public BoxStack getStartStack() {
-        return startStack;
+    public BoxStack getStack() {
+        return stack;
     }
 
-    public BoxStack getEndStack() {
-        return endStack;
-    }
-
-    public List<String> getBoxes() {
-        return boxes;
+    public String getBox() {
+        return box;
     }
 
     public float getExecutionTime() {
@@ -37,9 +28,9 @@ public class Task {
     }
 }
 
+//TODO
 enum TaskType{
     Move,
     Take,
-    Place,
-    Relocate
+    Place
 }

@@ -15,6 +15,7 @@ public class BoxStack {
         this.y = y;
     }
 
+    //VehicleQueue methods
     public void AddToQueue(Vehicle vehicle){
         vehicleQueue.add(vehicle);
     }
@@ -27,15 +28,46 @@ public class BoxStack {
         vehicleQueue.poll();
     }
 
-    public int GetInverseIndexOf(String box){
-        return GlobalData.getStackCapacity() - boxes.indexOf(box);
+    public int AmountInQueue(){
+        return vehicleQueue.size();
+    }
+
+    //BoxStack methods
+    public int GetDepth(String box){
+        return boxes.size() - boxes.indexOf(box);
     }
 
     public void addBox(String id){
         boxes.push(id);
     }
 
-    public int AmountInQueue(){
-        return vehicleQueue.size();
+    public String Pop(){
+        return boxes.pop();
     }
+
+    public void Push(String box){
+        boxes.push(box);
+    }
+
+    public int GetStackSize(){
+        return boxes.size();
+    }
+
+    public String GetFromStack(int index){
+        return boxes.get(index);
+    }
+
+    //getters & setters
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public String getName() {
+        return name;
+    }
+
 }
