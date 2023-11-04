@@ -5,11 +5,11 @@ public class Buffer extends BoxStack {
     private int y;
 
     public Buffer(int ID, String name, int x, int y) {
-        super(ID, name, x, y);
+        super(ID, name, x, y, Integer.MAX_VALUE);
         this.ID = ID;
         this.name = name;
         this.x = x;
-        this.y = y; 
+        this.y = y;
     }
 
     // Getters and setters for the class attributes

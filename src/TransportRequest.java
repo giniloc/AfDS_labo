@@ -1,25 +1,28 @@
+import java.util.List;
+
 public class TransportRequest {
     private int ID;
-    private BoxStack pickupLocation;
-    private BoxStack deliveryLocation;
+    private List <String>  pickupLocations;
+    private List <String> deliveryLocations;
     private String boxID;
 
-    public TransportRequest(int requestID, BoxStack pickupLocation, BoxStack placeLocations, String boxID) {
+    public TransportRequest(int requestID, List<String> pickupLocations, List<String> placeLocations, String boxID) {
         this.ID = requestID;
-        this.pickupLocation = pickupLocation;
-        this.deliveryLocation = placeLocations;
+        this.pickupLocations = pickupLocations;
+        this.deliveryLocations = placeLocations;
         this.boxID = boxID;
+        System.out.println("request: " + requestID);
     }
 
-    public BoxStack getPickupLocation() {
-        return pickupLocation;
+    public List<String> getPickupLocations() {
+        return pickupLocations;
     }
 
     public String getBoxID() {
         return boxID;
     }
 
-    public BoxStack getDeliveryLocation() {
-        return deliveryLocation;
+    public List<String>  getDeliveryLocations() {
+        return deliveryLocations;
     }
 }

@@ -75,27 +75,21 @@ public class Scheduler {
         if (vehicle.getCapacity() >= boxPosition && stackCapacity >= boxPosition) {// mogelijk om boxes in 1 keer te verplaatsen
             van.removeBox(van.getBox(boxPosition), vehicle);
             addTravelTime(vehicle, van);
-            vehicle.setX(van.getX());
-            vehicle.setY(van.getY());
+
             for (Box box : vehicle.getBoxes()) {
                 if (box.getBoxID().equals(request.getBoxID())) {
                     addTravelTime(vehicle, naar);
-                    vehicle.setX(naar.getX());
-                    vehicle.setY(naar.getY());
                     naar.addBox(box);
                     vehicle.removeBox(box);
                     break;
                 }
             }
+            addTravelTime(vehicle, van);
             while (!vehicle.getBoxes().empty()) {
                 Box box = vehicle.getBoxes().pop();
-                addTravelTime(vehicle, naar);
-                vehicle.setX(naar.getX());
-                vehicle.setY(naar.getY());
-                naar.addBox(box);
+                van.addBox(box);
                 vehicle.removeBox(box);
             }
-
         } else {
             BoxStack closestFreeStack = getClosestFreeStack(vehicle, boxPosition);
 
@@ -162,6 +156,8 @@ public class Scheduler {
         // Calculate the travel time using the vehicle's speed
         int travelTime = (int) Math.ceil(distance / vehicleSpeed);
         vehicle.setEndTime(vehicle.getEndTime() + travelTime);
+        vehicle.setX(stack.getX());
+        vehicle.setY(stack.getY());
     }
     public BoxStack getClosestFreeStack(Vehicle vehicle, int neededCapacity) {
         int minDistance = Integer.MAX_VALUE;
@@ -191,8 +187,5 @@ public class Scheduler {
 
         return (int) Math.ceil(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)));
     }
-    public enum action {
-        PICKUP, PLACE
-    }
-}
 
+}
