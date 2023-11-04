@@ -44,17 +44,17 @@ public class BoxStack {
         return y;
     }
 
-    public List<Box> removeBox(Box box) {
-        List<Box> removedBoxes = new ArrayList<>();
+    public void removeBox(Box box, Vehicle vehicle) {
         while (box != boxes.peek()){
             Box removedBox =boxes.pop();
-            removedBoxes.add(removedBox);
+            vehicle.addBox(removedBox);
+            vehicle.setEndTime(vehicle.getEndTime() + vehicle.getLoadingDuration());
             System.out.println("Removed box " + removedBox.getBoxID() + " from stack " + this.name);
         }
         boxes.pop();
-        removedBoxes.add(box);
+        vehicle.addBox(box);
+        vehicle.setEndTime(vehicle.getEndTime() + vehicle.getLoadingDuration());
         System.out.println("Removed box " + box.getBoxID() + " from stack " + this.name);
-        return removedBoxes;
     }
     public void setInUse(boolean inUse) {
         this.inUse = inUse;

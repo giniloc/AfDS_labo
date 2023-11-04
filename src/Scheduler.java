@@ -3,7 +3,6 @@ import java.util.List;
 import java.util.Stack;
 public class Scheduler {
     private List<BoxStack> neededStacks = new ArrayList<>();
-    private int loadingDuration;
     private final int vehicleSpeed;
     private final int stackCapacity;
     private List<BoxStack> boxStacks;
@@ -12,7 +11,6 @@ public class Scheduler {
     private Stack<TransportRequest> requests;
 
     public Scheduler(int lo, int vesp, int stcap, List<BoxStack> bs, Buffer bu, List<Vehicle> ve, Stack<TransportRequest> re) {
-        this.loadingDuration = lo;
         this.vehicleSpeed = vesp;
         this.stackCapacity = stcap;
         this.boxStacks = bs;
@@ -28,7 +26,7 @@ public class Scheduler {
             if (request == null) {
                 break; // No more requests, exit the loop.
             }
-            Vehicle vehicle = findAvailableVehicle(request);
+            Vehicle vehicle = findAvailableVehicle();
 
             if (vehicle == null) {
                 System.out.println("No available vehicles");
@@ -39,7 +37,8 @@ public class Scheduler {
                 BoxStack stack = findStackByName(location);
                 if (location.equals("BufferPoint")) {
                     neededStacks.add(buffer);
-                } else if (stack == null) {
+                }
+                else if (stack == null) {
                     System.out.println("Stack not found");
                     continue;
                 }
@@ -73,28 +72,34 @@ public class Scheduler {
         else naar.setInUse(true);
 
         int boxPosition = van.calculateBoxPosition(request.getBoxID());
-        if (vehicle.getCapacity() >= boxPosition && stackCapacity >= boxPosition) {
-            List<Box> removedBoxes = van.removeBox(van.getBox(boxPosition));
-            for (Box box : removedBoxes) {
+        if (vehicle.getCapacity() >= boxPosition && stackCapacity >= boxPosition) {// mogelijk om boxes in 1 keer te verplaatsen
+            van.removeBox(van.getBox(boxPosition), vehicle);
+            addTravelTime(vehicle, van);
+            vehicle.setX(van.getX());
+            vehicle.setY(van.getY());
+            for (Box box : vehicle.getBoxes()) {
                 if (box.getBoxID().equals(request.getBoxID())) {
+                    addTravelTime(vehicle, naar);
+                    vehicle.setX(naar.getX());
+                    vehicle.setY(naar.getY());
                     naar.addBox(box);
-                    removedBoxes.remove(box);
-                    //logAction(vehicle, "Picked up", box.getBoxID());
+                    vehicle.removeBox(box);
                     break;
                 }
             }
-            for (Box box : removedBoxes) {
-                van.addBox(box);
+            while (!vehicle.getBoxes().empty()) {
+                Box box = vehicle.getBoxes().pop();
+                addTravelTime(vehicle, naar);
+                vehicle.setX(naar.getX());
+                vehicle.setY(naar.getY());
+                naar.addBox(box);
+                vehicle.removeBox(box);
             }
 
-            // Update the vehicle's new position
-            vehicle.setX(van.getX());
-            vehicle.setY(van.getY());
         } else {
             BoxStack closestFreeStack = getClosestFreeStack(vehicle, boxPosition);
 
             closestFreeStack.addBox(request.getBoxID());
-           // logAction(vehicle, "Placed", request.getBoxID());
 
             // Update the vehicle's new position
             vehicle.setX(closestFreeStack.getX());
@@ -111,10 +116,9 @@ public class Scheduler {
         System.out.println("StartY: " + startY);
         System.out.println("EndX: " + endX);
         System.out.println("EndY: " + endY);
-    }
-
-    private void logAction(Vehicle vehicle, String action, String boxID) {
-        System.out.println("Vehicle " + vehicle.getID() + " " + action + " box " + boxID);
+        System.out.println("Start time: " + vehicle.getStartTime());
+        System.out.println("End time: " + vehicle.getEndTime());
+        vehicle.setStartTime(vehicle.getEndTime());
     }
 
     private BoxStack findStackByName(String location) {
@@ -122,13 +126,12 @@ public class Scheduler {
             if (stack.getName().equals(location)) {
                 return stack;
             }
-
         }
         return null;
     }
 
 
-    private Vehicle findAvailableVehicle(TransportRequest request) {
+    private Vehicle findAvailableVehicle() {
         for (Vehicle vehicle : vehicles) {
             if (!vehicle.isBusy()) {
                 vehicle.setBusy(true);
@@ -139,27 +142,26 @@ public class Scheduler {
         return null;
     }
 
-    private int calculateTravelTime(Vehicle vehicle, List<String> pickupLocations) { //deze gingen we nog krijgen van de prof
-        int travelTime = 0;
-        int x = vehicle.getX();
-        int y = vehicle.getY();
 
-        for (String location : pickupLocations) {
-            int x2 = Integer.parseInt(location.split(",")[0]);
-            int y2 = Integer.parseInt(location.split(",")[1]);
-
-            travelTime += (int) Math.ceil(Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2)) / vehicleSpeed);
-            x = x2;
-            y = y2;
-        }
-        return travelTime;
-    }
 
     public TransportRequest getNextRequestForVehicle(Vehicle vehicle) {
         if (!requests.isEmpty()) {
             return requests.pop();
         }
         return null;
+    }
+    private void addTravelTime(Vehicle vehicle, BoxStack stack) {
+        int x1 = vehicle.getX();
+        int y1 = vehicle.getY();
+        int x2 = stack.getX();
+        int y2 = stack.getY();
+
+        // Calculate the Euclidean distance between the current location and the stack
+        double distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+
+        // Calculate the travel time using the vehicle's speed
+        int travelTime = (int) Math.ceil(distance / vehicleSpeed);
+        vehicle.setEndTime(vehicle.getEndTime() + travelTime);
     }
     public BoxStack getClosestFreeStack(Vehicle vehicle, int neededCapacity) {
         int minDistance = Integer.MAX_VALUE;

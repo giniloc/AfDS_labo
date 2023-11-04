@@ -62,7 +62,7 @@ public class Main {
                 int capacity = vehicleObject.getInt("capacity");
                 int x = vehicleObject.getInt("xCoordinate");
                 int y = vehicleObject.getInt("yCoordinate");
-                vehicles.add(new Vehicle(ID, name, capacity, x, y));
+                vehicles.add(new Vehicle(ID, name, capacity,loadingDuration, x, y));
             }
 
             //requests
