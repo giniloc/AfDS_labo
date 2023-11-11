@@ -21,7 +21,7 @@ public class Main {
 
             //stacks
             JSONArray stackArray = jsonData.getJSONArray("stacks");
-            Map<String, BoxStack> stacks = new HashMap<String, BoxStack>();
+            Map<String, BoxStack> stacks = new HashMap<>();
 
             for (int i = 0; i < stackArray.length(); i++){
                 JSONObject stackObject = stackArray.getJSONObject(i);

@@ -6,7 +6,7 @@ public class Scheduler {
     private final Queue<Request> requests; //TODO: idk if this can be final
     private final int loadingDuration;
     private final Map<String, BoxStack> boxStacks;
-    private List<Task> tasksInOrder = new ArrayList<>(1024);
+    private final List<Task> tasksInOrder = new ArrayList<>(1024);
 
     public Scheduler(Vehicle[] vehicles, Queue<Request> requests, int loadingDuration, Map<String, BoxStack> boxStacks) {
         this.vehicles = vehicles;
@@ -88,6 +88,8 @@ public class Scheduler {
                 vehicle.setCurrentTime(currentTime);
             }
         }
+
+        for (Task task : tasksInOrder) task.print();
     }
 
     private BoxStack getRelocationStack(BoxStack pickupStack, BoxStack deliveryStack){
@@ -110,11 +112,20 @@ public class Scheduler {
         //returns current time of vehicle
         BoxStack stack = task.getStack();
         int endTimeStack = stack.getEndTime();
-        //System.out.println(endTimeStack + ", " + startTime);
         int maxEndTime = Math.max(endTimeStack, startTime);
         task.setStartTime(maxEndTime);
         stack.schedule(task);
-        task.print();
+
+        if (tasksInOrder.isEmpty()) tasksInOrder.add(task);
+        else{
+            for (int i = tasksInOrder.size()-1; i >= 0; i--){
+                if (tasksInOrder.get(i).getStartTime() < task.getStartTime()){
+                    tasksInOrder.add(i+1, task);
+                    break;
+                }
+            }
+        }
+
         return maxEndTime+task.getDuration();
     }
 }

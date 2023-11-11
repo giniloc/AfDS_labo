@@ -51,6 +51,10 @@ public class Task {
     public void setStartTime(int startTime) {
         this.startTime = startTime;
     }
+
+    public int getStartTime() {
+        return startTime;
+    }
 }
 
 enum TaskType{
