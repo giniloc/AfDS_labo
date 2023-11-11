@@ -6,58 +6,47 @@ public class BoxStack {
     private int x;
     private int y;
     private Stack<String> boxes = new Stack<>();
-    private Queue<Vehicle> vehicleQueue = new LinkedList<>();
+    private List<Task> schedule = new ArrayList<>(64);
+
+    private static int stackCapacity;
+    private int placeLeft;
 
     public BoxStack(int ID, String name, int x, int y) {
         this.ID = ID;
         this.name = name;
         this.x = x;
         this.y = y;
+        placeLeft = stackCapacity;
     }
 
-    //VehicleQueue methods
-    public void AddToQueue(Vehicle vehicle){
-        vehicleQueue.add(vehicle);
+    public void addBox(String box){
+        boxes.add(box);
     }
 
-    public boolean IsFirstInQueue(Vehicle vehicle){
-        return vehicleQueue.peek() == vehicle;
-    }
-
-    public void RemoveFirstInQueue(){
-        vehicleQueue.poll();
-    }
-
-    public int AmountInQueue(){
-        return vehicleQueue.size();
-    }
-
-    //BoxStack methods
-    public int GetDepth(String box){
-        return boxes.size() - boxes.indexOf(box);
-    }
-
-    public void addBox(String id){
-        boxes.push(id);
-    }
-
-    public String Pop(){
+    //Methods on boxes stack
+    public String pop(){
         return boxes.pop();
     }
 
-    public void Push(String box){
+    public void push(String box){
         boxes.push(box);
     }
 
-    public int GetStackSize(){
-        return boxes.size();
+    //Methods on schedule
+    public int getEndTime(){
+        if (schedule.isEmpty()) return 0;
+        else return schedule.get(schedule.size()-1).getEndTime();
     }
 
-    public String GetFromStack(int index){
-        return boxes.get(index);
+    public void schedule(Task task){
+        schedule.add(task);
     }
 
-    //getters & setters
+    //Getters & Setters
+    public String getName() {
+        return name;
+    }
+
     public int getX() {
         return x;
     }
@@ -66,8 +55,15 @@ public class BoxStack {
         return y;
     }
 
-    public String getName() {
-        return name;
+    public static void setStackCapacity(int stackCapacity) {
+        BoxStack.stackCapacity = stackCapacity;
     }
 
+    public static int getStackCapacity() {
+        return stackCapacity;
+    }
+
+    public int getPlaceLeft() {
+        return placeLeft;
+    }
 }

@@ -1,36 +1,60 @@
 public class Task {
-    private TaskType taskType;
-    private BoxStack stack;
-    private String box;
-    private float executionTime;
+    int startTime = 0;
+    int duration;
 
-    public Task(TaskType tt, BoxStack st, String bo, float ex){
-        taskType = tt;
-        stack = st;
-        box = bo;
-        executionTime = ex;
+    TaskType type;
+    String box;
+    BoxStack stack;
+
+    Vehicle vehicle;
+    int x;
+    int y;
+
+    public Task(){
+        type = TaskType.WAIT;
     }
 
-    public TaskType getTaskType() {
-        return taskType;
+    public Task(int duration, TaskType type, String box, Vehicle vehicle, BoxStack stack) {
+        this.duration = duration;
+        this.type = type;
+        this.box = box;
+        this.stack = stack;
+        this.vehicle = vehicle;
+        this.x = vehicle.getX();
+        this.y = vehicle.getY();
     }
 
+    public void print(){
+        System.out.println(vehicle.getName() + ";" +
+                x + ";" +
+                y + ";" + startTime + ";" +
+                stack.getX() + ";" +
+                stack.getY() + ";" +
+                (startTime+duration) + ";" +
+                box + ";" +
+                type);
+    }
+
+    //Getters & Setters
     public BoxStack getStack() {
         return stack;
     }
 
-    public String getBox() {
-        return box;
+    public int getEndTime(){
+        return startTime+duration;
     }
 
-    public float getExecutionTime() {
-        return executionTime;
+    public int getDuration(){
+        return duration;
+    }
+
+    public void setStartTime(int startTime) {
+        this.startTime = startTime;
     }
 }
 
-//TODO
 enum TaskType{
-    Move,
-    Take,
-    Place
+    PU,
+    PL,
+    WAIT
 }

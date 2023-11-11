@@ -22,13 +22,4 @@ public class Buffer extends BoxStack {
         return y;
     }
 
-    @Override
-    public String toString() {
-        return "Buffer{" +
-                "ID=" + ID +
-                ", name='" + name + '\'' +
-                ", x=" + x +
-                ", y=" + y +
-                '}';
-    }
 }

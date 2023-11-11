@@ -16,6 +16,9 @@ public class Main {
             int vehicleSpeed = jsonData.getInt("vehiclespeed");
             int stackCapacity = jsonData.getInt("stackcapacity");
 
+            Vehicle.setVehicleSpeed(vehicleSpeed);
+            BoxStack.setStackCapacity(stackCapacity);
+
             //stacks
             JSONArray stackArray = jsonData.getJSONArray("stacks");
             Map<String, BoxStack> stacks = new HashMap<String, BoxStack>();
@@ -29,7 +32,7 @@ public class Main {
                 BoxStack stack = new BoxStack(ID, name, x, y);
 
                 JSONArray boxesArray = stackObject.getJSONArray("boxes");
-                for (int j = boxesArray.length()-1; j >= 0; j--) {
+                for (int j = 0; j < boxesArray.length(); j++) {
                     String boxID = boxesArray.getString(j);
                     stack.addBox(boxID); // Add the box to the BoxStack
                 }
@@ -63,7 +66,7 @@ public class Main {
             //requests
 
             JSONArray requestsArray = jsonData.getJSONArray("requests");
-            Stack<TransportRequest> requests = new Stack<>();
+            Queue<Request> requests = new LinkedList<>();
 
             for (int i = 0; i < requestsArray.length(); i++) {
                 JSONObject requestObject = requestsArray.getJSONObject(i);
@@ -82,12 +85,12 @@ public class Main {
                     placeLocations.add(placeLocationsArray.getString(j));
                 }
 
-                TransportRequest request = new TransportRequest(requestID, stacks.get(pickupLocations.get(0)), stacks.get(placeLocations.get(0)), boxID);
+                Request request = new Request(requestID, stacks.get(pickupLocations.get(0)), stacks.get(placeLocations.get(0)), boxID);
                 requests.add(request);
             }
 
-            Scheduler scheduler = new Scheduler(vehicles, requests);
-            GlobalData.SetData(loadingDuration, vehicleSpeed, stackCapacity, stacks, buffer, scheduler);
+            Scheduler scheduler = new Scheduler(vehicles, requests, loadingDuration, stacks);
+            GlobalData.SetData(buffer, scheduler);
             scheduler.Start();
 
 
