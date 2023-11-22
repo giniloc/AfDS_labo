@@ -1,191 +1,161 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
+
 public class Scheduler {
-    private List<BoxStack> neededStacks = new ArrayList<>();
-    private final int vehicleSpeed;
-    private final int stackCapacity;
-    private List<BoxStack> boxStacks;
-    private Buffer buffer;
-    private List<Vehicle> vehicles;
-    private Stack<TransportRequest> requests;
 
-    public Scheduler(int lo, int vesp, int stcap, List<BoxStack> bs, Buffer bu, List<Vehicle> ve, Stack<TransportRequest> re) {
-        this.vehicleSpeed = vesp;
-        this.stackCapacity = stcap;
-        this.boxStacks = bs;
-        this.buffer = bu;
-        this.vehicles = ve;
-        this.requests = re;
+    private final Vehicle[] vehicles;
+    private final Queue<Request> requests;
+    private final int loadingDuration;
+    private final Map<String, BoxStack> boxStacks;
+    private final List<Task> tasksInOrder = new ArrayList<>(1024);
+
+    public Scheduler(Vehicle[] vehicles, Queue<Request> requests, int loadingDuration, Map<String, BoxStack> boxStacks) {
+        this.vehicles = vehicles;
+        this.requests = requests;
+        this.loadingDuration = loadingDuration;
+        this.boxStacks = boxStacks;
     }
 
-    public void scheduleRequests() {
+    public void start() {
         while (!requests.isEmpty()) {
-            TransportRequest request = requests.peek();
-
-            if (request == null) {
-                break; // No more requests, exit the loop.
+            for (Vehicle vehicle : vehicles) {
+                processRequest(vehicle);
             }
-            Vehicle vehicle = findAvailableVehicle();
-
-            if (vehicle == null) {
-                System.out.println("No available vehicles");
-                break; // No available vehicles, exit the loop.
-            }
-
-            for (String location : request.getPickupLocations()) {
-                BoxStack stack = findStackByName(location);
-                if (location.equals("BufferPoint")) {
-                    neededStacks.add(buffer);
-                }
-                else if (stack == null) {
-                    System.out.println("Stack not found");
-                    continue;
-                }
-                neededStacks.add(stack);
-            }
-
-            for (String location : request.getDeliveryLocations()) {
-                if (location.equals("BufferPoint")) {
-                    neededStacks.add(buffer);
-                }
-            }
-
-            processRequest(request, vehicle);
-            vehicle.setBusy(false);
-            requests.pop(); // Remove the completed request from the queue.
-            neededStacks.clear();
         }
+
+        printTasks();
     }
 
+    private void processRequest(Vehicle vehicle) {
+        Request request = requests.poll();
+        assert request != null;
+        BoxStack pickupStack = request.getPickupLocation();
+        BoxStack deliveryStack = request.getDeliveryLocation();
+        String targetBox = request.getBoxID();
+        int currentTime = vehicle.getCurrentTime();
 
-    public void processRequest(TransportRequest request, Vehicle vehicle) {
-        int startX = vehicle.getX();
-        int startY = vehicle.getY();
+        List<Task> undoRelocation_pickup = new ArrayList<>(64);
+        List<Task> undoRelocation_deliver = new ArrayList<>(64);
 
-        BoxStack van = neededStacks.get(0);
-        if (van.getName().equals("BufferPoint")) {
+        if (!pickupStack.getName().equals("BufferPoint")) {
+            String currentBox = "";
+            int boxCounter = 0;
+
+            while (!currentBox.equals(targetBox)) {
+                List<Task> relocation_deliver = new ArrayList<>(16);
+                boxCounter++;
+                int driveTime_toPickup = vehicle.getDriveTime(pickupStack);
+                int driveTime_toRelocate = 0;
+
+                for (int i = 0; i < vehicle.getCapacity(); i++) {
+                    currentBox = pickupStack.pop();
+                    if (currentBox.equals(targetBox)) break;
+
+                    BoxStack relocationStack = getRelocationStack(pickupStack, deliveryStack, boxCounter);
+                    Task newTask = new Task(loadingDuration + driveTime_toPickup, TaskType.PU, currentBox, vehicle, pickupStack);
+                    currentTime = schedule(newTask, currentTime);
+
+                    if (i == 0) {
+                        vehicle.driveTo(pickupStack);
+                        driveTime_toRelocate = vehicle.getDriveTime(relocationStack);
+                        vehicle.driveTo(relocationStack);
+                    }
+
+                    undoRelocation_pickup.add(new Task(loadingDuration + driveTime_toRelocate, TaskType.PL, currentBox, vehicle, pickupStack));
+
+                    if (i == 0) vehicle.driveTo(pickupStack);
+                    relocation_deliver.add(new Task(loadingDuration + driveTime_toRelocate, TaskType.PL, currentBox, vehicle, relocationStack));
+
+                    if (i == 0) vehicle.driveTo(deliveryStack);
+                    undoRelocation_deliver.add(new Task(loadingDuration + driveTime_toRelocate, TaskType.PU, currentBox, vehicle, relocationStack));
+
+                    vehicle.driveTo(relocationStack);
+                    driveTime_toPickup = 0;
+                    driveTime_toRelocate = 0;
+                }
+
+                for (Task task : relocation_deliver) currentTime = schedule(task, currentTime);
+            }
         }
-        else van.setInUse(true);
-        BoxStack naar = neededStacks.get(1);
-        if (naar.getName().equals("BufferPoint")){}
-        else naar.setInUse(true);
 
-        int boxPosition = van.calculateBoxPosition(request.getBoxID());
-        if (vehicle.getCapacity() >= boxPosition && stackCapacity >= boxPosition) {// mogelijk om boxes in 1 keer te verplaatsen
-            van.removeBox(van.getBox(boxPosition), vehicle);
-            addTravelTime(vehicle, van);
+        int driveTime = vehicle.getDriveTime(pickupStack);
+        Task pickupTask = new Task(loadingDuration + driveTime, TaskType.PU, targetBox, vehicle, pickupStack);
+        currentTime = schedule(pickupTask, currentTime);
+        vehicle.driveTo(pickupStack);
 
-            for (Box box : vehicle.getBoxes()) {
-                if (box.getBoxID().equals(request.getBoxID())) {
-                    addTravelTime(vehicle, naar);
-                    naar.addBox(box);
-                    vehicle.removeBox(box);
+        if (!pickupStack.getName().equals("BufferPoint")) {
+            deliveryStack.push(targetBox);
+        }
+
+        driveTime = vehicle.getDriveTime(deliveryStack);
+        Task deliverTask = new Task(loadingDuration + driveTime, TaskType.PL, targetBox, vehicle, deliveryStack);
+
+        currentTime = schedule(deliverTask, currentTime);
+
+        if (!undoRelocation_pickup.isEmpty()) {
+            vehicle.driveTo(pickupStack);
+        } else {
+            vehicle.driveTo(deliveryStack);
+        }
+
+        for (Task task : undoRelocation_deliver) currentTime = schedule(task, currentTime);
+        for (Task task : undoRelocation_pickup) currentTime = schedule(task, currentTime);
+
+        vehicle.setCurrentTime(currentTime);
+    }
+
+    private BoxStack getRelocationStack(BoxStack pickupStack, BoxStack deliveryStack, int boxCounter) {
+        int minDistance = Integer.MAX_VALUE;
+        BoxStack ret = null;
+
+        for (String key : boxStacks.keySet()) {
+            BoxStack boxStack = boxStacks.get(key);
+
+            if (boxStack == pickupStack || boxStack == deliveryStack) {
+                continue;
+            }
+
+            int remainingPlaces = boxStack.getRemainingPlaces();
+            if (remainingPlaces >= boxCounter) {
+                int distance = calculateDistance(pickupStack, boxStack);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    ret = boxStack;
+                }
+            }
+        }
+        return ret;
+    }
+
+    private int schedule(Task task, int startTime) {
+        BoxStack stack = task.getStack();
+        int endTimeStack = stack.getEndTime();
+        int maxEndTime = Math.max(endTimeStack, startTime);
+        task.setStartTime(maxEndTime);
+        stack.schedule(task);
+
+        if (tasksInOrder.isEmpty()) tasksInOrder.add(task);
+        else {
+            for (int i = tasksInOrder.size() - 1; i >= 0; i--) {
+                if (tasksInOrder.get(i).getStartTime() < task.getStartTime()) {
+                    tasksInOrder.add(i + 1, task);
                     break;
                 }
             }
-            addTravelTime(vehicle, van);
-            while (!vehicle.getBoxes().empty()) {
-                Box box = vehicle.getBoxes().pop();
-                van.addBox(box);
-                vehicle.removeBox(box);
-            }
-        } else {
-            BoxStack closestFreeStack = getClosestFreeStack(vehicle, boxPosition);
-
-            closestFreeStack.addBox(request.getBoxID());
-
-            // Update the vehicle's new position
-            vehicle.setX(closestFreeStack.getX());
-            vehicle.setY(closestFreeStack.getY());
-        }
-        van.setInUse(false);
-        naar.setInUse(false);
-
-        int endX = vehicle.getX();
-        int endY = vehicle.getY();
-
-        // Display the information
-        System.out.println("StartX: " + startX);
-        System.out.println("StartY: " + startY);
-        System.out.println("EndX: " + endX);
-        System.out.println("EndY: " + endY);
-        System.out.println("Start time: " + vehicle.getStartTime());
-        System.out.println("End time: " + vehicle.getEndTime());
-        vehicle.setStartTime(vehicle.getEndTime());
-    }
-
-    private BoxStack findStackByName(String location) {
-        for (BoxStack stack : boxStacks) {
-            if (stack.getName().equals(location)) {
-                return stack;
-            }
-        }
-        return null;
-    }
-
-
-    private Vehicle findAvailableVehicle() {
-        for (Vehicle vehicle : vehicles) {
-            if (!vehicle.isBusy()) {
-                vehicle.setBusy(true);
-                return vehicle;
-            }
-        }
-        System.out.println("No available vehicles");
-        return null;
-    }
-
-
-
-    public TransportRequest getNextRequestForVehicle(Vehicle vehicle) {
-        if (!requests.isEmpty()) {
-            return requests.pop();
-        }
-        return null;
-    }
-    private void addTravelTime(Vehicle vehicle, BoxStack stack) {
-        int x1 = vehicle.getX();
-        int y1 = vehicle.getY();
-        int x2 = stack.getX();
-        int y2 = stack.getY();
-
-        // Calculate the Euclidean distance between the current location and the stack
-        double distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-
-        // Calculate the travel time using the vehicle's speed
-        int travelTime = (int) Math.ceil(distance / vehicleSpeed);
-        vehicle.setEndTime(vehicle.getEndTime() + travelTime);
-        vehicle.setX(stack.getX());
-        vehicle.setY(stack.getY());
-    }
-    public BoxStack getClosestFreeStack(Vehicle vehicle, int neededCapacity) {
-        int minDistance = Integer.MAX_VALUE;
-        BoxStack closestStack = null;
-
-        for (BoxStack stack : boxStacks) {
-            if (!stack.isInUse() && stack.getCapacity() >= neededCapacity) {
-                int distance = calculateDistance(vehicle, stack);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestStack = stack;
-                }
-            }
         }
 
-        if (closestStack != null) {
-            closestStack.setInUse(true);
-        }
-
-        return closestStack;
+        return maxEndTime + task.getDuration();
     }
-    private int calculateDistance(Vehicle vehicle, BoxStack stack) {
-        int x1 = vehicle.getX();
-        int y1 = vehicle.getY();
-        int x2 = stack.getX();
-        int y2 = stack.getY();
+
+    private int calculateDistance(BoxStack stack1, BoxStack stack2) {
+        int x1 = stack1.getX();
+        int y1 = stack1.getY();
+        int x2 = stack2.getX();
+        int y2 = stack2.getY();
 
         return (int) Math.ceil(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)));
     }
 
+    private void printTasks() {
+        for (Task task : tasksInOrder) task.print();
+    }
 }

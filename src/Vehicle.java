@@ -1,94 +1,63 @@
-import java.util.Stack;
-
-
 public class Vehicle {
-    private int ID;
-    private String name;
+    private final int ID;
+    private final String name;
     private final int capacity;
+
     private int x;
     private int y;
-    private int startTime;
-    private int endTime;
-    private int loadingDuration;
+    private int currentTime;
 
-    private boolean isBusy;
-    private Stack <Box> boxes;
+    private static int vehicleSpeed;
 
-    public Vehicle(int id, String n, int capacity,int loadingDuration, int xc, int yc) {
+    public Vehicle(int id, String n, int capacity, int xc, int yc) {
         this.ID = id;
         this.name = n;
         this.capacity = capacity;
         this.x = xc;
         this.y = yc;
-        this.startTime=0;
-        this.endTime=0;
-        this.loadingDuration=loadingDuration;
-        this.isBusy=false;
-        this.boxes = new Stack<>();
-
     }
 
-    public int getX() {
-        return x;
+    public int getDriveTime(BoxStack stack){
+        return Math.abs((stack.getX() - x) + (stack.getY() - y)) / vehicleSpeed;
     }
 
-    public void setX(int x) {
-        this.x = x;
+    public void driveTo(BoxStack stack){
+        this.x = stack.getX();
+        this.y = stack.getY();
     }
 
-    public int getY() {
-        return y;
+    //Getters & Setters
+    public int getCurrentTime() {
+        return currentTime;
     }
 
-    public void setY(int y) {
-        this.y = y;
-    }
-
-    public int getID() {
-        return ID;
-    }
-
-    public boolean isBusy() {
-        return isBusy;
-    }
-
-    public int getEndTime() {
-        return endTime;
-    }
-
-    public void setBusy(boolean busy) {
-        isBusy = busy;
-    }
-
-    public void setStartTime(int startTime) {
-        this.startTime = startTime;
-    }
-
-    public void setEndTime(int endTime) {
-        this.endTime = endTime;
+    public static void setVehicleSpeed(int vehicleSpeed) {
+        Vehicle.vehicleSpeed = vehicleSpeed;
     }
 
     public int getCapacity() {
         return capacity;
     }
-    public void addBox(Box box) {
-        boxes.push(box);
-        System.out.println("Added box " + box.getBoxID() + " to vehicle " + this.name);
-    }
-    public void removeBox(Box box) {
-        boxes.remove(box);
-        System.out.println("Removed box " + box.getBoxID() + " from vehicle " + this.name);
+
+    public void setCurrentTime(int currentTime) {
+        this.currentTime = currentTime;
     }
 
-    public int getLoadingDuration() {
-        return loadingDuration;
+    public int getX() {
+        return x;
+    }
+    public void setX(int newX){
+        this.x=newX;
     }
 
-    public Stack<Box> getBoxes() {
-        return boxes;
+    public int getY() {
+        return y;
+    }
+    public void setY(int newY){
+        this.y=newY;
     }
 
-    public int getStartTime() {
-        return startTime;
+    public String getName() {
+        return name;
     }
 }

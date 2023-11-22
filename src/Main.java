@@ -4,11 +4,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -20,9 +16,12 @@ public class Main {
             int vehicleSpeed = jsonData.getInt("vehiclespeed");
             int stackCapacity = jsonData.getInt("stackcapacity");
 
+            Vehicle.setVehicleSpeed(vehicleSpeed);
+            BoxStack.setStackCapacity(stackCapacity);
+
             //stacks
             JSONArray stackArray = jsonData.getJSONArray("stacks");
-            List<BoxStack> stacks = new ArrayList<>();
+            Map<String, BoxStack> stacks = new HashMap<>();
 
             for (int i = 0; i < stackArray.length(); i++){
                 JSONObject stackObject = stackArray.getJSONObject(i);
@@ -30,15 +29,15 @@ public class Main {
                 String name = stackObject.getString("name");
                 int x = stackObject.getInt("x");
                 int y = stackObject.getInt("y");
-                BoxStack stack = new BoxStack(ID, name, x, y, stackCapacity);
+                BoxStack stack = new BoxStack(ID, name, x, y);
 
                 JSONArray boxesArray = stackObject.getJSONArray("boxes");
-                for (int j = boxesArray.length()-1; j >= 0; j--) {
+                for (int j = 0; j < boxesArray.length(); j++) {
                     String boxID = boxesArray.getString(j);
                     stack.addBox(boxID); // Add the box to the BoxStack
                 }
 
-                stacks.add(stack);
+                stacks.put(name, stack);
             }
 
             //buffer
@@ -48,12 +47,11 @@ public class Main {
             int bufferX = bufferObject.getInt("x");
             int bufferY = bufferObject.getInt("y");
             Buffer buffer = new Buffer(bufferID, bufferName, bufferX, bufferY);
-            System.out.println("Buffer: " + buffer);
-
+            stacks.put(bufferName, buffer);
 
             //vehicles
             JSONArray vehicleArray = jsonData.getJSONArray("vehicles");
-            List<Vehicle> vehicles = new ArrayList<>();
+            Vehicle[] vehicles = new Vehicle[vehicleArray.length()];
 
             for (int i = 0; i < vehicleArray.length(); i++){
                 JSONObject vehicleObject = vehicleArray.getJSONObject(i);
@@ -62,13 +60,13 @@ public class Main {
                 int capacity = vehicleObject.getInt("capacity");
                 int x = vehicleObject.getInt("xCoordinate");
                 int y = vehicleObject.getInt("yCoordinate");
-                vehicles.add(new Vehicle(ID, name, capacity,loadingDuration, x, y));
+                vehicles[i] = new Vehicle(ID, name, capacity, x, y);
             }
 
             //requests
 
             JSONArray requestsArray = jsonData.getJSONArray("requests");
-            Stack<TransportRequest> requests = new Stack<>();
+            Queue<Request> requests = new LinkedList<>();
 
             for (int i = 0; i < requestsArray.length(); i++) {
                 JSONObject requestObject = requestsArray.getJSONObject(i);
@@ -87,21 +85,12 @@ public class Main {
                     placeLocations.add(placeLocationsArray.getString(j));
                 }
 
-                TransportRequest request = new TransportRequest(requestID, pickupLocations, placeLocations, boxID);
+                Request request = new Request(requestID, stacks.get(pickupLocations.get(0)), stacks.get(placeLocations.get(0)), boxID);
                 requests.add(request);
             }
-            //scheduler.scheduleRequests();
 
-            // Create an ExecutorService with a fixed number of threads (e.g., one thread per vehicle)
-            ExecutorService executorService = Executors.newFixedThreadPool(vehicles.size());
-            Scheduler scheduler = new Scheduler(loadingDuration, vehicleSpeed, stackCapacity, stacks, buffer, vehicles, requests);
-
-            scheduler.scheduleRequests();
-
-            // Shutdown the executor when all tasks are complete
-            executorService.shutdown();
-
-
+            Scheduler scheduler = new Scheduler(vehicles, requests, loadingDuration, stacks);
+            scheduler.start();
 
 
         } catch (IOException e) {
