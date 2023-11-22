@@ -10,7 +10,7 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
         try {
-            String jsonContent = new String(Files.readAllBytes(Paths.get("src/Instances2L/I20_20_2_2_8b2.json"  /*"src/I3_3_1_5.json"*/)));
+            String jsonContent = new String(Files.readAllBytes(Paths.get(/*"src/Instances2L/I20_20_2_2_8b2.json"*/  "src/I3_3_1_5.json")));
             JSONObject jsonData = new JSONObject(jsonContent);
 
             int loadingDuration = jsonData.getInt("loadingduration");

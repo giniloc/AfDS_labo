@@ -32,7 +32,6 @@ public class Scheduler {
                 ret = vehicle;
             }
         }
-
         boxStack.setVehicle(ret);
         return ret;
     }
@@ -43,16 +42,15 @@ public class Scheduler {
                 processRequest(vehicle);
             }
         }
-
         printTasks();
     }
 
     private void processRequest(Vehicle vehicle) {
-        Request request = requests.poll();
-        assert request != null;
-        BoxStack pickupStack = request.getPickupLocation();
-        BoxStack deliveryStack = request.getDeliveryLocation();
-        String targetBox = request.getBoxID();
+        Request closestRequest = findClosestRequest(vehicle);
+        assert closestRequest != null;
+        BoxStack pickupStack = closestRequest.getPickupLocation();
+        BoxStack deliveryStack = closestRequest.getDeliveryLocation();
+        String targetBox = closestRequest.getBoxID();
         int currentTime = vehicle.getCurrentTime();
 
         List<Task> undoRelocation_pickup = new ArrayList<>(64);
@@ -187,5 +185,25 @@ public class Scheduler {
 
     private void printTasks() {
         for (Task task : tasksInOrder) task.print();
+    }
+    private Request findClosestRequest(Vehicle vehicle) {
+        Request closestRequest = null;
+        int minDistance = Integer.MAX_VALUE;
+
+        for (Request request : requests) {
+            BoxStack pickupLocation = request.getPickupLocation();
+            int distance = calculateDistance(pickupLocation, vehicle);
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestRequest = request;
+            }
+        }
+
+        if (closestRequest != null) {
+            requests.remove(closestRequest); // Remove the closest request from the queue
+        }
+
+        return closestRequest;
     }
 }
