@@ -2,17 +2,39 @@ import java.util.*;
 
 public class Scheduler {
 
-    private final Vehicle[] vehicles;
+    private  List<Vehicle> vehicles;
     private final Queue<Request> requests;
     private final int loadingDuration;
     private final Map<String, BoxStack> boxStacks;
     private final List<Task> tasksInOrder = new ArrayList<>(1024);
 
-    public Scheduler(Vehicle[] vehicles, Queue<Request> requests, int loadingDuration, Map<String, BoxStack> boxStacks) {
+    public Scheduler(List<Vehicle> vehicles, Queue<Request> requests, int loadingDuration, Map<String, BoxStack> boxStacks) {
         this.vehicles = vehicles;
         this.requests = requests;
         this.loadingDuration = loadingDuration;
         this.boxStacks = boxStacks;
+    }
+    public void preProcess(){
+        for (BoxStack boxStack : boxStacks.values()) {
+            Vehicle vehicle = assignVehicle(boxStack);
+            boxStack.setVehicle(vehicle);
+        }
+    }
+
+    private Vehicle assignVehicle(BoxStack boxStack) {
+        int minDistance = Integer.MAX_VALUE;
+        Vehicle ret = null;
+
+        for (Vehicle vehicle : vehicles) {
+            int distance = calculateDistance(boxStack, vehicle);
+            if (distance < minDistance) {
+                minDistance = distance;
+                ret = vehicle;
+            }
+        }
+
+        boxStack.setVehicle(ret);
+        return ret;
     }
 
     public void start() {
@@ -36,7 +58,7 @@ public class Scheduler {
         List<Task> undoRelocation_pickup = new ArrayList<>(64);
         List<Task> undoRelocation_deliver = new ArrayList<>(64);
 
-        if (!pickupStack.getName().equals("BufferPoint")) {
+        if (!(pickupStack instanceof Buffer)) {
             String currentBox = "";
             int boxCounter = 0;
 
@@ -151,6 +173,14 @@ public class Scheduler {
         int y1 = stack1.getY();
         int x2 = stack2.getX();
         int y2 = stack2.getY();
+
+        return (int) Math.ceil(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)));
+    }
+    private int calculateDistance(BoxStack stack1, Vehicle vehicle) {
+        int x1 = stack1.getX();
+        int y1 = stack1.getY();
+        int x2 = vehicle.getX();
+        int y2 = vehicle.getY();
 
         return (int) Math.ceil(Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)));
     }

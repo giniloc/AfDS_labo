@@ -1,3 +1,5 @@
+import java.util.List;
+
 public class Vehicle {
     private final int ID;
     private final String name;
@@ -6,8 +8,9 @@ public class Vehicle {
     private int x;
     private int y;
     private int currentTime;
-
     private static int vehicleSpeed;
+
+    private List <BoxStack> boxStacks;
 
     public Vehicle(int id, String n, int capacity, int xc, int yc) {
         this.ID = id;
@@ -59,5 +62,13 @@ public class Vehicle {
 
     public String getName() {
         return name;
+    }
+
+    public List<BoxStack> getBoxStacks() {
+        return boxStacks;
+    }
+
+    public void addBoxstack(BoxStack boxStack) {
+        boxStacks.add(boxStack);
     }
 }

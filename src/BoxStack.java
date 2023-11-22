@@ -10,11 +10,14 @@ public class BoxStack {
 
     private static int stackCapacity;
 
+    private static Vehicle vehicle;
+
     public BoxStack(int ID, String name, int x, int y) {
         this.ID = ID;
         this.name = name;
         this.x = x;
         this.y = y;
+        this.vehicle = null;
     }
 
     public void addBox(String box){
@@ -63,5 +66,12 @@ public class BoxStack {
 
     public int getRemainingPlaces() {
         return stackCapacity-boxes.size();
+    }
+
+    public static Vehicle getVehicle() {
+        return vehicle;
+    }
+    public void setVehicle(Vehicle vehicle) {
+        this.vehicle = vehicle;
     }
 }
