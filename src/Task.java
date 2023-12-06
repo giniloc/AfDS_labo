@@ -1,3 +1,7 @@
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 public class Task {
     private int startTime = 0;
     private int duration;
@@ -56,15 +60,15 @@ public class Task {
         return Math.abs((x0 - x1) + (y0 - y1)) / Vehicle.getVehicleSpeed();
     }
 
-    public void print(){
-        System.out.println(vehicle.getName() + ";" +
+    public String print(String inputName) {
+        return vehicle.getName() + ";" +
                 startX + ";" +
                 startY + ";" + startTime + ";" +
                 endX + ";" +
                 endY + ";" +
-                (startTime+duration) + ";" +
+                (startTime + duration) + ";" +
                 box + ";" +
-                type);
+                type;
     }
 
     //Getters & Setters

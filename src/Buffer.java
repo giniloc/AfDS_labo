@@ -17,6 +17,9 @@ public class Buffer extends BoxStack {
         this.y = y; 
     }
 
+    @Override
+    public void push(Box box){}
+
     public String getPickupKey(){
         Iterator<String> iter = pickupBoxesPerStack.keySet().iterator();
         if (iter.hasNext()){

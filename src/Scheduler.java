@@ -1,3 +1,10 @@
+import jdk.nashorn.internal.ir.RuntimeNode;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 public class Scheduler {
@@ -9,22 +16,48 @@ public class Scheduler {
     private final LinkedList<BoxStack> boxStacksNotUsed = new LinkedList<>();
     private final LinkedList<Buffer> buffersNotUsed = new LinkedList<>();
     private final List<Task> tasksInOrder = new ArrayList<>(1024);
+    private final String inputFileName;
 
-    public Scheduler(Vehicle[] vehicles, Map<String, BoxStack> boxStacks, Map<String, Buffer> buffers) {
+
+    public Scheduler(Vehicle[] vehicles, Map<String, BoxStack> boxStacks, Map<String, Buffer> buffers, String inputFileName) {
         this.vehicles = vehicles;
         this.boxStacks = boxStacks;
         this.buffers = buffers;
         stacksNBuffers = new HashMap<>();
         stacksNBuffers.putAll(boxStacks);
         stacksNBuffers.putAll(buffers);
+        this.inputFileName = inputFileName;
+    }
+
+    private void preProcess(){
+        for (String key : boxStacks.keySet()){
+            if (boxStacks.get(key).hasRequests()){
+                boxStacksNotUsed.add(boxStacks.get(key));
+            }
+        }
+        for (String key : buffers.keySet()){
+            if (buffers.get(key).hasRequests()){
+                buffersNotUsed.add(buffers.get(key));
+            }
+        }
+    }
+
+    private void resetStacks(){
+        boxStacksNotUsed.clear();
+        for (String key : boxStacks.keySet()){
+            boxStacksNotUsed.add(boxStacks.get(key));
+        }
     }
 
     public void Start(){
+        preProcess();
         handleStacks();
+        handleRelocations();
         handleBuffers();
         printTasks();
     }
 
+    //TODO: eerst vehicle dan stack
     private void handleStacks(){
         //stacks -> buffer
         while(!boxStacksNotUsed.isEmpty()){
@@ -106,7 +139,67 @@ public class Scheduler {
         }
     }
 
-    //TODO: zou kunnen da ge moet relocaten
+    //TODO: eerst vehicle dan stack
+    private void handleRelocations(){
+        resetStacks();
+        for (int i = 0; i < boxStacksNotUsed.size(); i++){
+            BoxStack stack = boxStacksNotUsed.pop();
+            Vehicle vehicle = getBestVehicle(stack);
+            int iterations = stack.getAmountDeliveryBoxes() - stack.getPlaceLeft();
+            if (iterations > 0){
+                List<BoxStack> relocationStacks = getStrictRelocationStacks(iterations, stack, vehicle);
+                int currentRelocationStack = 0;
+                int amountRelocations = 0;
+                Map<String, List<Box>> boxesPerDeliveryLocation = new HashMap<>();
+
+                for (int j = 0; j < iterations; j++){
+                    //pickup
+                    Box box = stack.pop();
+                    Task pickupTask = new Task(TaskType.PU, box.getName(), vehicle, stack);
+                    vehicle.setCurrentTime(schedule(pickupTask, vehicle.getCurrentTime()));
+                    vehicle.driveTo(stack);
+
+                    //place
+                    amountRelocations++;
+                    BoxStack deliveryStack = relocationStacks.get(currentRelocationStack);
+                    if (!boxesPerDeliveryLocation.containsKey(deliveryStack.getName())){
+                        boxesPerDeliveryLocation.put(deliveryStack.getName(), new ArrayList<>());
+                    }
+                    boxesPerDeliveryLocation.get(deliveryStack.getName()).add(box);
+
+                    if (amountRelocations >= deliveryStack.getPlaceLeft()){
+                        currentRelocationStack++;
+                        amountRelocations = 0;
+                    }
+                }
+
+                if (!boxesPerDeliveryLocation.isEmpty()) {
+                    String previousKey = null;
+                    int startX = stack.getX();
+                    int startY = stack.getY();
+                    for (String key : boxesPerDeliveryLocation.keySet()) {
+                        if (previousKey != null) {
+                            BoxStack previousBuffer = stacksNBuffers.get(previousKey);
+                            startX = previousBuffer.getX();
+                            startY = previousBuffer.getY();
+                        }
+                        previousKey = key;
+                        BoxStack thisBuffer = stacksNBuffers.get(key);
+                        for (Box box : boxesPerDeliveryLocation.get(key)) {
+                            Task newTask = new Task(TaskType.PL, box.getName(), vehicle, startX, startY, thisBuffer);
+                            vehicle.setCurrentTime(schedule(newTask, vehicle.getCurrentTime()));
+                            thisBuffer.push(box);
+                            startX = thisBuffer.getX();
+                            startY = thisBuffer.getY();
+                        }
+                    }
+                    vehicle.driveTo(stacksNBuffers.get(previousKey));
+                }
+            }
+        }
+    }
+
+    //TODO: eerst vehicle dan stack
     private void handleBuffers(){
         //buffers -> stacks
         while(!buffersNotUsed.isEmpty()) {
@@ -138,7 +231,6 @@ public class Scheduler {
                     break;
                 }
 
-
                 //pickup
                 Box box = currentBoxes.poll();
                 Task pickupTask = new Task(TaskType.PU, box.getName(), vehicle, vehicle.getX(), vehicle.getY(), buffer);
@@ -151,8 +243,6 @@ public class Scheduler {
                 }
                 boxesPerDeliveryLocation.get(currentDeliveryLocation_name).add(box);
             }
-
-            //relocating: ...
 
             if (!boxesPerDeliveryLocation.isEmpty()){
                 String previousKey = null;
@@ -198,6 +288,22 @@ public class Scheduler {
         return bestVehicle;
     }
 
+    //TODO
+    private BoxStack getBestStackFor(Vehicle vehicle, List<BoxStack> potentialStacks){
+        BoxStack bestStack = null;
+        float lowestCost = Integer.MAX_VALUE;
+        for (BoxStack stack : potentialStacks){
+            float cost = 0;
+            cost += vehicle.getDriveTime(stack);
+            cost += Math.abs(vehicle.getCurrentTime() - stack.getEndTime());
+            if (cost < lowestCost){
+                lowestCost = cost;
+                bestStack = stack;
+            }
+        }
+        return bestStack;
+    }
+
     private List<BoxStack> getRelocationStacks(int totalAmount, BoxStack myStack,Vehicle vehicle){
         List<BoxStack> relocationStacks = new ArrayList<>(4);
         int currentAmount = 0;
@@ -213,7 +319,9 @@ public class Scheduler {
                 int cost = 0;
                 cost += Math.abs(stack.getEndTime() - vehicle.getCurrentTime());
                 cost += vehicle.getDriveTime(stack);
-                cost -= stack.getPlaceLeft() * 5;
+                int placeLeft = stack.getPlaceLeft();
+                if (placeLeft == 0) continue;
+                cost -= placeLeft * 5;
                 if (cost < lowestCost){
                     lowestCost = cost;
                     bestStack = stack;
@@ -221,6 +329,37 @@ public class Scheduler {
             }
             assert bestStack != null;
             currentAmount += bestStack.getPlaceLeft();
+            relocationStacks.add(bestStack);
+        }
+
+        return relocationStacks;
+    }
+
+    public List<BoxStack> getStrictRelocationStacks(int totalAmount, BoxStack myStack,Vehicle vehicle){
+        List<BoxStack> relocationStacks = new ArrayList<>(4);
+        int currentAmount = 0;
+
+        while(totalAmount > currentAmount){
+            int lowestCost = Integer.MAX_VALUE;
+            BoxStack bestStack = null;
+            for (String key : boxStacks.keySet()){
+                BoxStack stack = boxStacks.get(key);
+                if (stack.equals(myStack) || relocationStacks.contains(stack)){
+                    continue;
+                }
+                int cost = 0;
+                cost += Math.abs(stack.getEndTime() - vehicle.getCurrentTime());
+                cost += vehicle.getDriveTime(stack);
+                int placeLeft = (stack.getPlaceLeft() - stack.getAmountDeliveryBoxes());
+                if (placeLeft <= 0) continue;
+                cost -= placeLeft * 5;
+                if (cost < lowestCost){
+                    lowestCost = cost;
+                    bestStack = stack;
+                }
+            }
+            assert bestStack != null;
+            currentAmount += bestStack.getPlaceLeft() - bestStack.getAmountDeliveryBoxes();
             relocationStacks.add(bestStack);
         }
 
@@ -249,6 +388,36 @@ public class Scheduler {
     }
 
     private void printTasks() {
-        for (Task task : tasksInOrder) task.print();
+        String outputFolder = "outputFiles";
+        String outputFileName = outputFolder + "/" + inputFileName + ".output";
+        clearOutputFile(inputFileName);
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter(outputFileName, true))) {
+            for (Task task : tasksInOrder){
+                writer.println(task.print(inputFileName));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for (Task task : tasksInOrder){
+            task.print(inputFileName);
+        }
+    }
+
+    public void clearOutputFile(String inputFileName) {
+        String outputFolder = "outputFiles";
+        String outputFileName = outputFolder + "/" + inputFileName + ".output";
+
+        try {
+            File file = new File(outputFileName);
+            if (file.exists()) {
+                if (!file.delete()) {
+                    System.err.println("Failed to clear the output file.");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

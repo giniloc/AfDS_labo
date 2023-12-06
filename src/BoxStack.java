@@ -9,28 +9,29 @@ public class BoxStack {
     private int endTime = 0;
 
     private static int stackCapacity;
-    private int placeLeft;
 
     private int lastPickupIndex = Integer.MAX_VALUE;
     private int amountPickupBoxes = 0;
     private boolean hasRequests = false;
+    private int amountDeliveryBoxes = 0; //=boxes die van eender welke buffer naar hier moeten worden gebracht
 
     public BoxStack(int ID, String name, int x, int y) {
         this.ID = ID;
         this.name = name;
         this.x = x;
         this.y = y;
-        placeLeft = stackCapacity;
     }
 
     //Methods on boxes stack
     public Box pop(){
-        return boxes.pop();
+        Box box = boxes.pop();
+        System.out.println(name + ": placeLeft: " + getPlaceLeft() + ", box: " + box.getName() + ", pop");
+        return box;
     }
 
     public void push(Box box){
-        if (boxes.size() >= stackCapacity) System.out.println("stack overflowing");
         boxes.push(box);
+        System.out.println(name + ": placeLeft: " + getPlaceLeft() + ", box: " + box.getName() + ", push");
     }
 
     //Methods on pickupBoxes
@@ -75,7 +76,7 @@ public class BoxStack {
     }
 
     public int getPlaceLeft() {
-        return placeLeft;
+        return stackCapacity - boxes.size();
     }
 
     public int getAmountRelocationBoxes(){
@@ -96,5 +97,13 @@ public class BoxStack {
 
     public boolean hasRequests() {
         return hasRequests;
+    }
+
+    public void addDeliveryBox(){
+        amountDeliveryBoxes++;
+    }
+
+    public int getAmountDeliveryBoxes(){
+        return amountDeliveryBoxes;
     }
 }

@@ -16,9 +16,10 @@ public class Main {
         String I5 = "I100_120_2_2_8b2.json";
 
         String Itest = "I3_3_1_5.json";
+        String currentInput = Itest;
 
         try {
-            String jsonContent = new String(Files.readAllBytes(Paths.get(I5)));
+            String jsonContent = new String(Files.readAllBytes(Paths.get(currentInput)));
             JSONObject jsonData = new JSONObject(jsonContent);
 
             int loadingDuration = jsonData.getInt("loadingduration");
@@ -93,14 +94,14 @@ public class Main {
             JSONArray requestsArray = jsonData.getJSONArray("requests");
 
             for (int i = 0; i < requestsArray.length(); i++) {
-                if (requestsArray.isNull(i)) continue;
-                else {
+                if (!requestsArray.isNull(i)){
                     JSONObject requestObject = requestsArray.getJSONObject(i);
                     String pickupLocation = requestObject.getString("pickupLocation");
                     String placeLocation = requestObject.getString("placeLocation");
                     String boxID = requestObject.getString("boxID");
 
                     if (buffers.containsKey(pickupLocation)){
+                        stacks.get(placeLocation).addDeliveryBox();
                         buffers.get(pickupLocation).addPickupBox(placeLocation, new Box(boxID));
                     }
                     else{
@@ -109,8 +110,7 @@ public class Main {
                 }
             }
 
-            Scheduler scheduler = new Scheduler(vehicles, stacks, buffers);
-            scheduler.preProcess();
+            Scheduler scheduler = new Scheduler(vehicles, stacks, buffers, currentInput);
             scheduler.Start();
 
 

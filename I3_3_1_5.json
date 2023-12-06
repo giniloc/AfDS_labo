@@ -177,6 +177,56 @@
         "stack0_1"
       ,
       "boxID": "BBufferTest5"
+    },
+    {
+      "ID": 14,
+      "pickupLocation":
+      "BufferPoint"
+    ,
+      "placeLocation":
+      "stack0_1"
+    ,
+      "boxID": "BBufferTest6"
+    },
+    {
+      "ID": 15,
+      "pickupLocation":
+      "BufferPoint"
+    ,
+      "placeLocation":
+      "stack0_1"
+    ,
+      "boxID": "BBufferTest7"
+    },
+    {
+      "ID": 16,
+      "pickupLocation":
+      "BufferPoint"
+    ,
+      "placeLocation":
+      "stack0_1"
+    ,
+      "boxID": "BBufferTest8"
+    },
+    {
+      "ID": 17,
+      "pickupLocation":
+      "BufferPoint"
+    ,
+      "placeLocation":
+      "stack0_1"
+    ,
+      "boxID": "BBufferTest9"
+    },
+    {
+      "ID": 18,
+      "pickupLocation":
+      "BufferPoint"
+    ,
+      "placeLocation":
+      "stack0_1"
+    ,
+      "boxID": "BBufferTest10"
     }
   ]
 }
