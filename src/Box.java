@@ -1,11 +1,21 @@
 public class Box {
-    private String boxID;
+    private String name;
+    private BoxStack deliveryStack;
 
-    public Box(String boxID) {
-        this.boxID = boxID;
+    public Box(String name){
+        this.name = name;
     }
 
-    public String getBoxID() {
-        return boxID;
+    //Getters & setters
+    public String getName() {
+        return name;
+    }
+
+    public void setDeliveryStack(BoxStack stack){
+        deliveryStack = stack;
+    }
+
+    public BoxStack getDeliveryStack(){
+        return deliveryStack;
     }
 }

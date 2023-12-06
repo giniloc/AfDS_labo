@@ -1,44 +1,95 @@
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 public class Task {
-    int startTime = 0;
-    int duration;
+    private int startTime = 0;
+    private int duration;
 
-    TaskType type;
-    String box;
-    BoxStack stack;
-    Vehicle vehicle;
-    int x;
-    int y;
+    private TaskType type;
+    private String box;
 
-    public Task(){
-        type = TaskType.WAIT;
-    }
+    private int startX;
+    private int startY;
+    private int endX;
+    private int endY;
 
-    public Task(int duration, TaskType type, String box, Vehicle vehicle, BoxStack stack) {
-        this.duration = duration;
+    private Vehicle vehicle;
+    private BoxStack endStack;
+
+    public Task(TaskType type, String box, Vehicle vehicle, BoxStack startStack, BoxStack endStack) {
         this.type = type;
         this.box = box;
-        this.stack = stack;
         this.vehicle = vehicle;
-        this.x = vehicle.getX();
-        this.y = vehicle.getY();
+        this.startX = startStack.getX();
+        this.startY = startStack.getY();
+        this.endX = endStack.getX();
+        this.endY = endStack.getY();
+        this.endStack = endStack;
+
+        duration = calculateDriveTime(startX, startY, endX, endY) + Vehicle.getLoadingDuration();
+    }
+
+    public Task(TaskType type, String box, Vehicle vehicle, int x0, int y0, BoxStack endStack) {
+        this.type = type;
+        this.box = box;
+        this.vehicle = vehicle;
+        this.startX = x0;
+        this.startY = y0;
+        this.endX = endStack.getX();
+        this.endY = endStack.getY();
+        this.endStack = endStack;
+
+        duration = calculateDriveTime(startX, startY, endX, endY) + Vehicle.getLoadingDuration();
+    }
+
+    public Task(TaskType type, String box, Vehicle vehicle, BoxStack stack) {
+        this.type = type;
+        this.box = box;
+        this.vehicle = vehicle;
+        this.startX = stack.getX();
+        this.startY = stack.getY();
+        this.endX = stack.getX();
+        this.endY = stack.getY();
+        this.endStack = stack;
+
+        duration = Vehicle.getLoadingDuration();
+    }
+
+    private int calculateDriveTime(int x0, int y0, int x1, int y1){
+        return Math.abs((x0 - x1) + (y0 - y1)) / Vehicle.getVehicleSpeed();
     }
 
     public void print(){
         System.out.println(vehicle.getName() + ";" +
-                x + ";" +
-                y + ";" + startTime + ";" +
-                stack.getX() + ";" +
-                stack.getY() + ";" +
+                startX + ";" +
+                startY + ";" + startTime + ";" +
+                endX + ";" +
+                endY + ";" +
                 (startTime+duration) + ";" +
                 box + ";" +
                 type);
     }
+    public void print(String inputName) {
+        String outputFolder = "outputFiles";
+        String outputFileName = outputFolder + "/" + inputName + ".output";
 
-    //Getters & Setters
-    public BoxStack getStack() {
-        return stack;
+        try (PrintWriter writer = new PrintWriter(new FileWriter(outputFileName, true))) {
+            writer.println(vehicle.getName() + ";" +
+                    startX + ";" +
+                    startY + ";" + startTime + ";" +
+                    endX + ";" +
+                    endY + ";" +
+                    (startTime + duration) + ";" +
+                    box + ";" +
+                    type);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
+
+    //Getters & Setters
     public int getEndTime(){
         return startTime+duration;
     }
@@ -54,10 +105,13 @@ public class Task {
     public int getStartTime() {
         return startTime;
     }
+
+    public BoxStack getEndStack() {
+        return endStack;
+    }
 }
 
 enum TaskType{
     PU,
-    PL,
-    WAIT
+    PL
 }

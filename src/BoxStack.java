@@ -1,51 +1,61 @@
 import java.util.*;
 
 public class BoxStack {
-    private final int ID;
+    private int ID;
     private final String name;
     private final int x;
     private final int y;
-    private Stack<String> boxes = new Stack<>();
-    private List<Task> schedule = new ArrayList<>(64);
+    private Stack<Box> boxes = new Stack<>();
+    private int endTime = 0;
 
     private static int stackCapacity;
+    private int placeLeft;
 
-    private static Vehicle vehicle;
+    private int lastPickupIndex = Integer.MAX_VALUE;
+    private int amountPickupBoxes = 0;
+    private boolean hasRequests = false;
 
     public BoxStack(int ID, String name, int x, int y) {
         this.ID = ID;
         this.name = name;
         this.x = x;
         this.y = y;
-        this.vehicle = null;
-    }
-
-    public void addBox(String box){
-        boxes.add(box);
+        placeLeft = stackCapacity;
     }
 
     //Methods on boxes stack
-    public String pop(){
+    public Box pop(){
         return boxes.pop();
     }
 
-    public void push(String box){
+    public void push(Box box){
+        if (boxes.size() >= stackCapacity) System.out.println("stack overflowing");
         boxes.push(box);
     }
 
-    //Methods on schedule
-    public int getEndTime(){
-        if (schedule.isEmpty()) return 0;
-        else return schedule.get(schedule.size()-1).getEndTime();
-    }
-
-    public void schedule(Task task){
-        schedule.add(task);
+    //Methods on pickupBoxes
+    public void addPickupBox(String boxName, BoxStack deliveryStack){
+        hasRequests = true;
+        amountPickupBoxes++;
+        for (int i = 0; i < boxes.size(); i++){
+            if (boxName.equals(boxes.get(i).getName())){
+                if (i < lastPickupIndex) lastPickupIndex = i;
+                boxes.get(i).setDeliveryStack(deliveryStack);
+            }
+        }
     }
 
     //Getters & Setters
+    public int getLastPickupIndex() {
+        return lastPickupIndex;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public Stack<Box> getBoxes() {
+        return boxes;
     }
 
     public int getX() {
@@ -64,14 +74,27 @@ public class BoxStack {
         return stackCapacity;
     }
 
-    public int getRemainingPlaces() {
-        return stackCapacity-boxes.size();
+    public int getPlaceLeft() {
+        return placeLeft;
     }
 
-    public static Vehicle getVehicle() {
-        return vehicle;
+    public int getAmountRelocationBoxes(){
+        return (boxes.size() - getLastPickupIndex()) - amountPickupBoxes;
     }
-    public void setVehicle(Vehicle vehicle) {
-        this.vehicle = vehicle;
+
+    public int boxesSize(){
+        return boxes.size();
+    }
+
+    public int getEndTime(){
+        return endTime;
+    }
+
+    public void setEndTime(int time){
+        endTime = time;
+    }
+
+    public boolean hasRequests() {
+        return hasRequests;
     }
 }

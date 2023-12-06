@@ -1,0 +1,182 @@
+{
+  "loadingduration": 5,
+  "vehiclespeed": 1,
+  "stackcapacity": 10,
+  "stacks": [
+    {
+      "ID": 0,
+      "boxes": [
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "B9"
+      ],
+      "name": "stack0_1",
+      "x": 110,
+      "y": 100
+    },
+    {
+      "ID": 1,
+      "boxes": [
+        "B10",
+        "B14A",
+        "B12",
+        "B13",
+        "BTest2",
+        "BTest",
+        "B14",
+        "T2"
+      ],
+      "name": "stack0_2",
+      "x": 120,
+      "y": 100
+    },
+    {
+      "ID": 2,
+      "boxes": [
+        "B15",
+        "B16",
+        "B17",
+        "B18",
+        "B19"
+      ],
+      "name": "stack0_3",
+      "x": 130,
+      "y": 100
+    }
+  ],
+  "bufferpoints": [
+    {
+      "ID": 0,
+      "name": "BufferPoint",
+      "x": 0,
+      "y": 100
+    }
+  ],
+  "vehicles": [
+    {
+      "ID": 0,
+      "name": "Vehicle0",
+      "capacity": 5,
+      "x": 100,
+      "y": 100
+    },
+    {
+      "ID": 1,
+      "name": "Vehicle1",
+      "capacity": 5,
+      "x": 0,
+      "y": 100
+    },
+    {
+      "ID": 2,
+      "name": "Vehicle2",
+      "capacity": 5,
+      "x": 50,
+      "y": 100
+    }
+  ],
+  "requests": [
+    {
+      "ID": 20,
+      "pickupLocation":
+        "stack0_2"
+      ,
+      "placeLocation":
+        "BufferPoint"
+      ,
+      "boxID": "B14"
+    },
+    {
+      "ID": 3,
+      "pickupLocation":
+        "stack0_2"
+      ,
+      "placeLocation":
+        "BufferPoint"
+      ,
+      "boxID": "B13"
+    },
+    {
+      "ID": 6,
+      "pickupLocation":
+        "stack0_1"
+      ,
+      "placeLocation":
+        "BufferPoint"
+      ,
+      "boxID": "B9"
+    },
+    {
+      "ID": 7,
+      "pickupLocation":
+        "stack0_2"
+      ,
+      "placeLocation":
+        "BufferPoint"
+      ,
+      "boxID": "B12"
+    },
+    {
+      "ID": 8,
+      "pickupLocation":
+        "BufferPoint"
+      ,
+      "placeLocation":
+        "stack0_2"
+      ,
+      "boxID": "BBufferTest0"
+    },
+    {
+      "ID": 9,
+      "pickupLocation":
+        "BufferPoint"
+      ,
+      "placeLocation":
+        "stack0_1"
+      ,
+      "boxID": "BBufferTest1"
+    },
+    {
+      "ID": 10,
+      "pickupLocation":
+        "BufferPoint"
+      ,
+      "placeLocation":
+        "stack0_3"
+      ,
+      "boxID": "BBufferTest2"
+    },
+    {
+      "ID": 11,
+      "pickupLocation":
+        "BufferPoint"
+      ,
+      "placeLocation":
+        "stack0_2"
+      ,
+      "boxID": "BBufferTest3"
+    },
+    {
+      "ID": 12,
+      "pickupLocation":
+        "BufferPoint"
+      ,
+      "placeLocation":
+        "stack0_1"
+      ,
+      "boxID": "BBufferTest4"
+    },
+    {
+      "ID": 13,
+      "pickupLocation":
+        "BufferPoint"
+      ,
+      "placeLocation":
+        "stack0_1"
+      ,
+      "boxID": "BBufferTest5"
+    }
+  ]
+}

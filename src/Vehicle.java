@@ -1,4 +1,6 @@
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Vehicle {
     private final int ID;
@@ -8,9 +10,9 @@ public class Vehicle {
     private int x;
     private int y;
     private int currentTime;
-    private static int vehicleSpeed;
 
-    private List <BoxStack> boxStacks;
+    private static int vehicleSpeed;
+    private static int loadingDuration;
 
     public Vehicle(int id, String n, int capacity, int xc, int yc) {
         this.ID = id;
@@ -24,9 +26,13 @@ public class Vehicle {
         return Math.abs((stack.getX() - x) + (stack.getY() - y)) / vehicleSpeed;
     }
 
+    public int getDriveTime(BoxStack stack0, BoxStack stack1) {
+        return Math.abs((stack1.getX() - stack0.getX()) + (stack1.getY() - stack0.getX())) / vehicleSpeed;
+    }
+
     public void driveTo(BoxStack stack){
-        this.x = stack.getX();
-        this.y = stack.getY();
+        x = stack.getX();
+        y = stack.getY();
     }
 
     //Getters & Setters
@@ -49,26 +55,24 @@ public class Vehicle {
     public int getX() {
         return x;
     }
-    public void setX(int newX){
-        this.x=newX;
-    }
 
     public int getY() {
         return y;
-    }
-    public void setY(int newY){
-        this.y=newY;
     }
 
     public String getName() {
         return name;
     }
 
-    public List<BoxStack> getBoxStacks() {
-        return boxStacks;
+    public static int getVehicleSpeed() {
+        return vehicleSpeed;
     }
 
-    public void addBoxstack(BoxStack boxStack) {
-        boxStacks.add(boxStack);
+    public static int getLoadingDuration() {
+        return loadingDuration;
+    }
+
+    public static void setLoadingDuration(int loadingDuration) {
+        Vehicle.loadingDuration = loadingDuration;
     }
 }
