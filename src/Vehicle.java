@@ -1,3 +1,7 @@
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class Vehicle {
     private final int ID;
     private final String name;
@@ -8,6 +12,7 @@ public class Vehicle {
     private int currentTime;
 
     private static int vehicleSpeed;
+    private static int loadingDuration;
 
     public Vehicle(int id, String n, int capacity, int xc, int yc) {
         this.ID = id;
@@ -19,6 +24,10 @@ public class Vehicle {
 
     public int getDriveTime(BoxStack stack){
         return Math.abs((stack.getX() - x) + (stack.getY() - y)) / vehicleSpeed;
+    }
+
+    public int getDriveTime(BoxStack stack0, BoxStack stack1) {
+        return Math.abs((stack1.getX() - stack0.getX()) + (stack1.getY() - stack0.getX())) / vehicleSpeed;
     }
 
     public void driveTo(BoxStack stack){
@@ -53,5 +62,17 @@ public class Vehicle {
 
     public String getName() {
         return name;
+    }
+
+    public static int getVehicleSpeed() {
+        return vehicleSpeed;
+    }
+
+    public static int getLoadingDuration() {
+        return loadingDuration;
+    }
+
+    public static void setLoadingDuration(int loadingDuration) {
+        Vehicle.loadingDuration = loadingDuration;
     }
 }
