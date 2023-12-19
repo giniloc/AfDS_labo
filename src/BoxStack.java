@@ -55,10 +55,6 @@ public class BoxStack {
         return name;
     }
 
-    public Stack<Box> getBoxes() {
-        return boxes;
-    }
-
     public int getX() {
         return x;
     }

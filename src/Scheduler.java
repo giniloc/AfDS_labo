@@ -52,9 +52,7 @@ public class Scheduler {
         handleStacks();
         handleRelocations();
         handleBuffers();
-        System.out.println(System.currentTimeMillis() - startTime);
         printTasks();
-
     }
 
     private void handleStacks(){

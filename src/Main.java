@@ -35,8 +35,7 @@ public class Main {
             Map<String, BoxStack> stacks = new HashMap<>();
 
             for (int i = 0; i < stackArray.length(); i++){
-                if (stackArray.isNull(i)) continue;
-                else{
+                if (!stackArray.isNull(i)) {
                     JSONObject stackObject = stackArray.getJSONObject(i);
                     int ID = stackObject.getInt("ID");
                     String name = stackObject.getString("name");
@@ -73,7 +72,7 @@ public class Main {
 
             //vehicles
             JSONArray vehicleArray = jsonData.getJSONArray("vehicles");
-            List<Vehicle> vehicles = new ArrayList<Vehicle>(vehicleArray.length());
+            List<Vehicle> vehicles = new ArrayList<>(vehicleArray.length());
 
             for (int i = 0; i < vehicleArray.length(); i++){
                 if (vehicleArray.isNull(i)) continue;

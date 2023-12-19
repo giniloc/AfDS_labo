@@ -47,13 +47,9 @@ public class Buffer extends BoxStack {
     public void addPickupBox(String stackName, Box box){
         hasRequests = true;
         if (!pickupBoxesPerStack.containsKey(stackName)){
-            pickupBoxesPerStack.put(stackName, new LinkedList<Box>());
+            pickupBoxesPerStack.put(stackName, new LinkedList<>());
         }
         pickupBoxesPerStack.get(stackName).add(box);
-    }
-
-    public void addStack(String name){
-        pickupBoxesPerStack.put(name, new LinkedList<>());
     }
 
     public LinkedList<Box> getDeliveryBoxes(String key){
