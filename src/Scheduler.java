@@ -1,6 +1,3 @@
-import jdk.nashorn.internal.ir.RuntimeNode;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,17 +6,17 @@ import java.util.*;
 
 public class Scheduler {
 
-    private final Vehicle[] vehicles;
+    private final List<Vehicle> vehicles;
     private final Map<String, BoxStack> boxStacks;
     private final Map<String, Buffer> buffers;
     private final Map<String, BoxStack> stacksNBuffers;
     private final LinkedList<BoxStack> boxStacksNotUsed = new LinkedList<>();
-    private final LinkedList<Buffer> buffersNotUsed = new LinkedList<>();
+    private final LinkedList<BoxStack> buffersNotUsed = new LinkedList<>();
     private final List<Task> tasksInOrder = new ArrayList<>(1024);
     private final String inputFileName;
+    private final long startTime;
 
-
-    public Scheduler(Vehicle[] vehicles, Map<String, BoxStack> boxStacks, Map<String, Buffer> buffers, String inputFileName) {
+    public Scheduler(List<Vehicle> vehicles, Map<String, BoxStack> boxStacks, Map<String, Buffer> buffers, String inputFileName) {
         this.vehicles = vehicles;
         this.boxStacks = boxStacks;
         this.buffers = buffers;
@@ -27,6 +24,7 @@ public class Scheduler {
         stacksNBuffers.putAll(boxStacks);
         stacksNBuffers.putAll(buffers);
         this.inputFileName = inputFileName;
+        startTime = System.currentTimeMillis();
     }
 
     private void preProcess(){
@@ -54,16 +52,18 @@ public class Scheduler {
         handleStacks();
         handleRelocations();
         handleBuffers();
+        System.out.println(System.currentTimeMillis() - startTime);
         printTasks();
+
     }
 
-    //TODO: eerst vehicle dan stack
     private void handleStacks(){
         //stacks -> buffer
         while(!boxStacksNotUsed.isEmpty()){
-            BoxStack stack = boxStacksNotUsed.pop();
+            Vehicle vehicle = getFirstVehicle();
+            BoxStack stack = getBestStackFor(vehicle, boxStacksNotUsed);
             if (stack == null) break;
-            Vehicle vehicle = getBestVehicle(stack);
+            boxStacksNotUsed.remove(stack);
 
             int lastPickupIndex = stack.getLastPickupIndex();
             int amountRelocationBoxes = stack.getAmountRelocationBoxes();
@@ -81,8 +81,8 @@ public class Scheduler {
 
                 //pickup
                 Task pickupTask;
-                if (vehicleCapacity == vehicle.getCapacity()) pickupTask = new Task(TaskType.PU, newBox.getName(), vehicle, vehicle.getX(), vehicle.getY(), stack);
-                else pickupTask = new Task(TaskType.PU, newBox.getName(), vehicle, stack);
+                pickupTask = new Task(TaskType.PU, newBox.getName(), vehicle, stack);
+                vehicle.driveTo(stack);
                 currentTime = schedule(pickupTask, currentTime);
                 vehicleCapacity--;
 
@@ -139,12 +139,13 @@ public class Scheduler {
         }
     }
 
-    //TODO: eerst vehicle dan stack
     private void handleRelocations(){
         resetStacks();
-        for (int i = 0; i < boxStacksNotUsed.size(); i++){
-            BoxStack stack = boxStacksNotUsed.pop();
-            Vehicle vehicle = getBestVehicle(stack);
+        while(!boxStacksNotUsed.isEmpty()){
+            Vehicle vehicle = getFirstVehicle();
+            BoxStack stack = getBestStackFor(vehicle, boxStacksNotUsed);
+            if (stack == null) break;
+            boxStacksNotUsed.remove(stack);
             int iterations = stack.getAmountDeliveryBoxes() - stack.getPlaceLeft();
             if (iterations > 0){
                 List<BoxStack> relocationStacks = getStrictRelocationStacks(iterations, stack, vehicle);
@@ -199,12 +200,13 @@ public class Scheduler {
         }
     }
 
-    //TODO: eerst vehicle dan stack
     private void handleBuffers(){
         //buffers -> stacks
         while(!buffersNotUsed.isEmpty()) {
-            Buffer buffer = buffersNotUsed.getFirst();
-            Vehicle vehicle = getBestVehicle(buffer);
+            Vehicle vehicle = getFirstVehicle();
+            Buffer buffer = (Buffer) getBestStackFor(vehicle, buffersNotUsed);
+            if (buffer == null) break;
+
             String currentDeliveryLocation_name = buffer.getPickupKey();
             if (currentDeliveryLocation_name.isEmpty()) continue;
             LinkedList<Box> currentBoxes = buffer.getDeliveryBoxes(currentDeliveryLocation_name);
@@ -227,7 +229,7 @@ public class Scheduler {
                 }
                 if (newBuffer){
                     newBuffer = false;
-                    buffersNotUsed.remove(0);
+                    buffersNotUsed.remove(buffer);
                     break;
                 }
 
@@ -272,30 +274,31 @@ public class Scheduler {
         }
     }
 
-    //TODO: veranderen naar getBestStack voor een vehicle. Daarvoor gaat ge wss datatype van stacks en buffers moeten aanpassen.
-    private Vehicle getBestVehicle(BoxStack stack){
+    private Vehicle getFirstVehicle(){
         Vehicle bestVehicle = null;
-        float lowestCost = Integer.MAX_VALUE;
-        for (Vehicle vehicle : vehicles){
-            float cost = 0;
-            cost += vehicle.getDriveTime(stack);
-            cost += Math.abs(vehicle.getCurrentTime() - stack.getEndTime());
-            if (cost < lowestCost){
-                lowestCost = cost;
-                bestVehicle = vehicle;
+        int shortestTime = Integer.MAX_VALUE;
+        for (Vehicle v : vehicles){
+            if (v.getCurrentTime() < shortestTime){
+                bestVehicle = v;
+                if (v.getCurrentTime() == 0){
+                    break;
+                }
+                shortestTime = v.getCurrentTime();
             }
         }
+
         return bestVehicle;
     }
 
-    //TODO
     private BoxStack getBestStackFor(Vehicle vehicle, List<BoxStack> potentialStacks){
         BoxStack bestStack = null;
         float lowestCost = Integer.MAX_VALUE;
         for (BoxStack stack : potentialStacks){
             float cost = 0;
             cost += vehicle.getDriveTime(stack);
-            cost += Math.abs(vehicle.getCurrentTime() - stack.getEndTime());
+            int timeCost = vehicle.getCurrentTime() - stack.getEndTime();
+            if (timeCost < 0) timeCost = 0;
+            cost += timeCost;
             if (cost < lowestCost){
                 lowestCost = cost;
                 bestStack = stack;
@@ -316,12 +319,12 @@ public class Scheduler {
                 if (stack.equals(myStack) || relocationStacks.contains(stack)){
                     continue;
                 }
-                int cost = 0;
-                cost += Math.abs(stack.getEndTime() - vehicle.getCurrentTime());
+                int cost = stack.getEndTime() - vehicle.getCurrentTime();
+                if (cost < 0) cost = 0;
                 cost += vehicle.getDriveTime(stack);
                 int placeLeft = stack.getPlaceLeft();
                 if (placeLeft == 0) continue;
-                cost -= placeLeft * 5;
+                cost -= placeLeft * Vehicle.getLoadingDuration();
                 if (cost < lowestCost){
                     lowestCost = cost;
                     bestStack = stack;
@@ -347,17 +350,18 @@ public class Scheduler {
                 if (stack.equals(myStack) || relocationStacks.contains(stack)){
                     continue;
                 }
-                int cost = 0;
-                cost += Math.abs(stack.getEndTime() - vehicle.getCurrentTime());
+                int cost = stack.getEndTime() - vehicle.getCurrentTime();
+                if (cost < 0) cost = 0;
                 cost += vehicle.getDriveTime(stack);
                 int placeLeft = (stack.getPlaceLeft() - stack.getAmountDeliveryBoxes());
                 if (placeLeft <= 0) continue;
-                cost -= placeLeft * 5;
+                cost -= placeLeft * Vehicle.getLoadingDuration();
                 if (cost < lowestCost){
                     lowestCost = cost;
                     bestStack = stack;
                 }
             }
+
             assert bestStack != null;
             currentAmount += bestStack.getPlaceLeft() - bestStack.getAmountDeliveryBoxes();
             relocationStacks.add(bestStack);
@@ -371,7 +375,7 @@ public class Scheduler {
         int endTimeStack = stack.getEndTime();
         int maxEndTime = Math.max(endTimeStack, startTime);
         task.setStartTime(maxEndTime);
-        stack.setEndTime(maxEndTime);
+        stack.setEndTime(maxEndTime + task.getDuration());
 
         if (tasksInOrder.isEmpty()) tasksInOrder.add(task);
         else {
@@ -394,14 +398,14 @@ public class Scheduler {
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(outputFileName, true))) {
             for (Task task : tasksInOrder){
-                writer.println(task.print(inputFileName));
+                writer.println(task.print());
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         for (Task task : tasksInOrder){
-            task.print(inputFileName);
+            task.print();
         }
     }
 

@@ -6,6 +6,11 @@
     {
       "ID": 0,
       "boxes": [
+        "B0_0",
+        "B0_1",
+        "B0_2",
+        "B0_3",
+        "B0_4",
         "B5",
         "B6",
         "B7",
@@ -19,6 +24,8 @@
     {
       "ID": 1,
       "boxes": [
+        "B1_0",
+        "B1_1",
         "B10",
         "B14A",
         "B12",
@@ -35,6 +42,11 @@
     {
       "ID": 2,
       "boxes": [
+        "B2_0",
+        "B2_1",
+        "B2_2",
+        "B2_3",
+        "B2_4",
         "B15",
         "B16",
         "B17",
@@ -79,46 +91,6 @@
   ],
   "requests": [
     {
-      "ID": 20,
-      "pickupLocation":
-        "stack0_2"
-      ,
-      "placeLocation":
-        "BufferPoint"
-      ,
-      "boxID": "B14"
-    },
-    {
-      "ID": 3,
-      "pickupLocation":
-        "stack0_2"
-      ,
-      "placeLocation":
-        "BufferPoint"
-      ,
-      "boxID": "B13"
-    },
-    {
-      "ID": 6,
-      "pickupLocation":
-        "stack0_1"
-      ,
-      "placeLocation":
-        "BufferPoint"
-      ,
-      "boxID": "B9"
-    },
-    {
-      "ID": 7,
-      "pickupLocation":
-        "stack0_2"
-      ,
-      "placeLocation":
-        "BufferPoint"
-      ,
-      "boxID": "B12"
-    },
-    {
       "ID": 8,
       "pickupLocation":
         "BufferPoint"
@@ -137,96 +109,6 @@
         "stack0_1"
       ,
       "boxID": "BBufferTest1"
-    },
-    {
-      "ID": 10,
-      "pickupLocation":
-        "BufferPoint"
-      ,
-      "placeLocation":
-        "stack0_3"
-      ,
-      "boxID": "BBufferTest2"
-    },
-    {
-      "ID": 11,
-      "pickupLocation":
-        "BufferPoint"
-      ,
-      "placeLocation":
-        "stack0_2"
-      ,
-      "boxID": "BBufferTest3"
-    },
-    {
-      "ID": 12,
-      "pickupLocation":
-        "BufferPoint"
-      ,
-      "placeLocation":
-        "stack0_1"
-      ,
-      "boxID": "BBufferTest4"
-    },
-    {
-      "ID": 13,
-      "pickupLocation":
-        "BufferPoint"
-      ,
-      "placeLocation":
-        "stack0_1"
-      ,
-      "boxID": "BBufferTest5"
-    },
-    {
-      "ID": 14,
-      "pickupLocation":
-      "BufferPoint"
-    ,
-      "placeLocation":
-      "stack0_1"
-    ,
-      "boxID": "BBufferTest6"
-    },
-    {
-      "ID": 15,
-      "pickupLocation":
-      "BufferPoint"
-    ,
-      "placeLocation":
-      "stack0_1"
-    ,
-      "boxID": "BBufferTest7"
-    },
-    {
-      "ID": 16,
-      "pickupLocation":
-      "BufferPoint"
-    ,
-      "placeLocation":
-      "stack0_1"
-    ,
-      "boxID": "BBufferTest8"
-    },
-    {
-      "ID": 17,
-      "pickupLocation":
-      "BufferPoint"
-    ,
-      "placeLocation":
-      "stack0_1"
-    ,
-      "boxID": "BBufferTest9"
-    },
-    {
-      "ID": 18,
-      "pickupLocation":
-      "BufferPoint"
-    ,
-      "placeLocation":
-      "stack0_1"
-    ,
-      "boxID": "BBufferTest10"
     }
   ]
 }

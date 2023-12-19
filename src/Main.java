@@ -8,18 +8,18 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
-        String I0 = "I20_20_2_2_8b2.json";
-        String I1 = "I30_100_1_1_10.json";
-        String I2 = "I30_100_3_3_10.json";
-        String I3 = "I30_200_3_3_10.json";
-        String I4 = "I100_50_2_2_8b2.json";
-        String I5 = "I100_120_2_2_8b2.json";
+        String I0 = "I20_20_2_2_8b2";
+        String I1 = "I30_100_1_1_10";
+        String I2 = "I30_100_3_3_10";
+        String I3 = "I30_200_3_3_10";
+        String I4 = "I100_50_2_2_8b2";
+        String I5 = "I100_120_2_2_8b2";
 
-        String Itest = "I3_3_1_5.json";
-        String currentInput = Itest;
+        String Itest = "I3_3_1_5"; //gaat nullpointer geven
+        String currentInput = I5;
 
         try {
-            String jsonContent = new String(Files.readAllBytes(Paths.get(currentInput)));
+            String jsonContent = new String(Files.readAllBytes(Paths.get(currentInput + ".json")));
             JSONObject jsonData = new JSONObject(jsonContent);
 
             int loadingDuration = jsonData.getInt("loadingduration");
@@ -58,8 +58,7 @@ public class Main {
             JSONArray bufferArray = jsonData.getJSONArray("bufferpoints");
             Map<String, Buffer> buffers = new HashMap<>();
             for (int i = 0; i < bufferArray.length(); i++){
-                if (bufferArray.isNull(i)) continue;
-                else{
+                if (!bufferArray.isNull(i)) {
                     JSONObject bufferObject = bufferArray.getJSONObject(i);
                     int bufferID = bufferObject.getInt("ID");
                     String bufferName = bufferObject.getString("name");
@@ -74,7 +73,7 @@ public class Main {
 
             //vehicles
             JSONArray vehicleArray = jsonData.getJSONArray("vehicles");
-            Vehicle[] vehicles = new Vehicle[vehicleArray.length()];
+            List<Vehicle> vehicles = new ArrayList<Vehicle>(vehicleArray.length());
 
             for (int i = 0; i < vehicleArray.length(); i++){
                 if (vehicleArray.isNull(i)) continue;
@@ -85,7 +84,7 @@ public class Main {
                     int capacity = vehicleObject.getInt("capacity");
                     int x = vehicleObject.getInt("x"); //deze aanpassen voor andere inputs
                     int y = vehicleObject.getInt("y"); //deze aanpassen voor andere inputs
-                    vehicles[i] = new Vehicle(ID, name, capacity, x, y);
+                    vehicles.add(new Vehicle(ID, name, capacity, x, y));
                 }
             }
 

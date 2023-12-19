@@ -25,13 +25,13 @@ public class BoxStack {
     //Methods on boxes stack
     public Box pop(){
         Box box = boxes.pop();
-        System.out.println(name + ": placeLeft: " + getPlaceLeft() + ", box: " + box.getName() + ", pop");
+        //System.out.println(name + ": placeLeft: " + getPlaceLeft() + ", box: " + box.getName() + ", pop");
         return box;
     }
 
     public void push(Box box){
         boxes.push(box);
-        System.out.println(name + ": placeLeft: " + getPlaceLeft() + ", box: " + box.getName() + ", push");
+        //System.out.println(name + ": placeLeft: " + getPlaceLeft() + ", box: " + box.getName() + ", push");
     }
 
     //Methods on pickupBoxes
@@ -69,10 +69,6 @@ public class BoxStack {
 
     public static void setStackCapacity(int stackCapacity) {
         BoxStack.stackCapacity = stackCapacity;
-    }
-
-    public static int getStackCapacity() {
-        return stackCapacity;
     }
 
     public int getPlaceLeft() {

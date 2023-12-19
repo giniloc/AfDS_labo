@@ -1,34 +1,17 @@
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 public class Task {
     private int startTime = 0;
-    private int duration;
+    private final int duration;
 
-    private TaskType type;
-    private String box;
+    private final TaskType type;
+    private final String box;
 
-    private int startX;
-    private int startY;
-    private int endX;
-    private int endY;
+    private final int startX;
+    private final int startY;
+    private final int endX;
+    private final int endY;
 
-    private Vehicle vehicle;
-    private BoxStack endStack;
-
-    public Task(TaskType type, String box, Vehicle vehicle, BoxStack startStack, BoxStack endStack) {
-        this.type = type;
-        this.box = box;
-        this.vehicle = vehicle;
-        this.startX = startStack.getX();
-        this.startY = startStack.getY();
-        this.endX = endStack.getX();
-        this.endY = endStack.getY();
-        this.endStack = endStack;
-
-        duration = calculateDriveTime(startX, startY, endX, endY) + Vehicle.getLoadingDuration();
-    }
+    private final Vehicle vehicle;
+    private final BoxStack endStack;
 
     public Task(TaskType type, String box, Vehicle vehicle, int x0, int y0, BoxStack endStack) {
         this.type = type;
@@ -47,8 +30,8 @@ public class Task {
         this.type = type;
         this.box = box;
         this.vehicle = vehicle;
-        this.startX = stack.getX();
-        this.startY = stack.getY();
+        this.startX = vehicle.getX();
+        this.startY = vehicle.getY();
         this.endX = stack.getX();
         this.endY = stack.getY();
         this.endStack = stack;
@@ -60,7 +43,7 @@ public class Task {
         return Math.abs((x0 - x1) + (y0 - y1)) / Vehicle.getVehicleSpeed();
     }
 
-    public String print(String inputName) {
+    public String print() {
         return vehicle.getName() + ";" +
                 startX + ";" +
                 startY + ";" + startTime + ";" +
@@ -72,10 +55,6 @@ public class Task {
     }
 
     //Getters & Setters
-    public int getEndTime(){
-        return startTime+duration;
-    }
-
     public int getDuration(){
         return duration;
     }
